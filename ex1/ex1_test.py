@@ -1,0 +1,156 @@
+
+import sys 
+sys.path.append('/home/v-tingdu/code/')  
+
+import importlib
+import numpy as np
+import matplotlib.pyplot as plt
+import torch
+import torch.nn.functional as F
+from timeit import default_timer
+from Adam import Adam
+from tfponet import TFPONet
+from scipy import interpolate
+from scipy.special import airy
+# from ex1_tfpm import tfpm
+import generate_data_1d as generate_data_1d
+from math import sqrt
+
+# importlib.reload(generate_data_1d)
+
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+
+def q(x):
+    return np.where(x<=0.5, 2*x+1, 2*(1-x)+1)/eps
+
+def q_1(x):
+    return (2*x+1)/eps
+
+def q_2(x):
+    return (2*(1-x)+1)/eps
+
+def get_coeff(grid, f):
+    N = len(grid)
+    coefficients = np.zeros((N, 2))
+    for i in range(N - 1):
+        a = (f[i + 1] - f[i]) / (grid[i + 1] - grid[i])
+        b = f[i] - a * grid[i]
+        coefficients[i][0] = a
+        coefficients[i][1] = b
+    coefficients[int(N/2)-1] = coefficients[int(N/2)-2]
+    coefficients[-1, :] = coefficients[-2]
+    return coefficients
+
+def get_modify(x, f):
+    coeff = get_coeff(x, f)
+    ab = np.zeros((len(x), 2), dtype=np.float64)
+    for i in range(len(x)):
+        if abs(coeff[i][0]) >= 1e-8:
+            ab[i, 0], aip, ab[i, 1], bip = airy(f[i] * np.power(np.abs(coeff[i][0]), -2 / 3))
+        else:
+            if coeff[i][1] >= 1e-8:
+                ab[i, 1] = np.exp(x[i] * sqrt(coeff[i][1]))
+                ab[i, 0] = np.exp(-x[i] * sqrt(coeff[i][1]))
+            else:
+                ab[i, 1], ab[i, 0] = 1.0, x[i]
+    return ab
+
+
+eps = 0.001
+NS = 257
+ntrain = 1000
+ntest = 100
+ntest_show = 100
+factor = 10
+learning_rate = 0.001
+epochs = 1000
+step_size = 50
+gamma = 0.6
+alpha = 1
+
+f = np.load('code/ex1/f.npy')
+u = np.load('code/ex1/ex1_u.npy')
+u *= factor
+
+N_max = f.shape[-1]
+model = TFPONet(NS,  1).to(device)
+model.load_state_dict(torch.load('code/ex1/ex1_model_256.pt')) 
+
+
+
+
+loss_history = dict()
+mse_history = []
+print("N value : ", NS - 1)
+
+
+N = ntrain * NS
+grid_h = np.linspace(0, 1, N_max)
+gridx = np.linspace(0, 1, NS)
+ab = get_modify(gridx, q(gridx))
+
+max_modify = ab.max(axis=0)
+min_modify = ab.min(axis=0)
+
+
+dim = 513  # test resolution, dim must be odd
+batch_size = dim
+N = ntest * dim
+f_test = f[-ntest:, :]
+grid_t = np.linspace(0, 1, dim)
+u_test = u[-ntest:, :]
+f_test = interpolate.interp1d(grid_h, f_test)(gridx)
+u_test = interpolate.interp1d(grid_h, u_test)(grid_t)
+ab = get_modify(grid_t, q(grid_t))
+input_f = np.repeat(f_test, dim, axis=0)
+input_loc = np.tile(grid_t, ntest).reshape((N, 1))
+input_modify = np.tile(ab, (ntest, 1))
+output = u_test.reshape((N, 1))
+input_modify = (input_modify - min_modify)/(max_modify - min_modify)
+input_f = torch.Tensor(input_f).to(device)
+input_loc = torch.Tensor(input_loc).to(device)
+input_modify = torch.Tensor(input_modify).to(device)
+output = torch.Tensor(output).to(device)
+test_h_loader = torch.utils.data.DataLoader(torch.utils.data.TensorDataset(input_f, input_loc,
+                                                                          input_modify, output),
+                                            batch_size=batch_size, shuffle=False)
+
+pred = torch.zeros((ntest, dim))
+index = 0
+test_mse = 0
+with torch.no_grad():
+    for x, l, e, y in test_h_loader:
+        out = model(x, l, e[:, 0].reshape((-1, 1)), e[:, 1].reshape((-1, 1)))
+        pred[index] = out.view(-1)
+        mse = F.mse_loss(out.view(1, -1), y.view(1, -1), reduction='mean')
+        test_mse += mse.item()
+        index += 1
+    test_mse /= len(test_h_loader)
+    print('test error on high resolution: MSE = ', test_mse)
+
+
+pred = pred.cpu()
+residual = pred - u_test
+
+for i in range(ntest):
+    fig = plt.figure(figsize=(8, 4), dpi=150)
+    plt.subplot(1, 2, 1)
+    plt.title("ground truth")
+    plt.plot(grid_t, u_test[i] / factor, label='ground truth')
+    plt.plot(grid_t, pred[i] / factor, label='prediction')
+    plt.xlabel("x")
+    plt.ylabel("$u_g$:ground truth")
+    plt.legend()
+    plt.grid()
+
+    plt.subplot(1, 2, 2)
+    plt.title("prediction")
+    plt.plot(grid_t, residual[i] / factor)
+    plt.xlabel("x")
+    plt.ylabel("$u_p$:predictions")
+    plt.grid()
+
+    plt.tight_layout()
+    plt.show(block=True)
+    plt.savefig('code/ex1/alltestfig/ex1_fig{}.png'.format(i))
