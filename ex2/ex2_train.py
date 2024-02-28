@@ -16,7 +16,7 @@ from scipy import interpolate
 from scipy.special import iv
 from math import sqrt
 
-# import ex2_generate_data
+import ex2_generate_data
 
 
 # importlib.reload(generate_data_1d)
@@ -27,7 +27,7 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 # q(x,y)=mu(x,y)**2
 # -Delta u + q(x,y)*u = 0
 def mu(x, y):
-    return np.where(x <= 0, 100 * (1 - x ** 2) + 1, 0.1)
+    return np.where(x <= 0, sqrt(1000)* (1 - x ** 2), 1)
 
 
 def get_modify(x, y):
@@ -43,24 +43,24 @@ def get_modify(x, y):
 
 ntrain = 500
 ntest = 50
-learning_rate = 0.0001
-epochs = 10
+learning_rate = 0.0002
+epochs = 2000
 step_size = 200
-gamma = 0.2
+gamma = 0.4
 ap = 1
 factor = 10
 
+f1 = np.load('/home/v-tingdu/code/ex2/ex2_f1.npy')
+f2 = np.load('/home/v-tingdu/code/ex2/ex2_f2.npy')
 ## f1.shape[-1]=f2.shape[-1]=2**6+1
 # f1, f2 = ex2_generate_data.data_generate(ntrain+ntest, 2**7+1)
 # np.save('/home/v-tingdu/code/icann/ex2_f1.npy',f1)
 # np.save('/home/v-tingdu/code/icann/ex2_f2.npy',f2)
 # u1, u2 = ex2_generate_data.dim2_tfpm(f1, f2)
-# np.save('/home/v-tingdu/code/icann/ex2_u1.npy', u1)
-# np.save('/home/v-tingdu/code/icann/ex2_u2.npy', u2)
-f1 = np.load('code/ex2/ex2_f1.npy')
-f2 = np.load('code/ex2/ex2_f2.npy')
-u1 = np.load('code/ex2/ex2_u1.npy')
-u2 = np.load('code/ex2/ex2_u2.npy')
+# np.save('/home/v-tingdu/code/ex2/ex2_u1.npy', u1)
+# np.save('/home/v-tingdu/code/ex2/ex2_u2.npy', u2)
+u1 = np.load('/home/v-tingdu/code/ex2/ex2_u1.npy')
+u2 = np.load('/home/v-tingdu/code/ex2/ex2_u2.npy')
 
 u1 *= factor
 u2 *= factor
@@ -175,8 +175,8 @@ for ep in range(epochs):
 print('Total training time:', default_timer() - start, 's')
 loss_history["{}".format(NS)] = mse_history
 
-torch.save(model_1.state_dict(), 'code/ex2/ex2_model1.pt')
-torch.save(model_2.state_dict(), 'code/ex2/ex2_model2.pt')
+torch.save(model_1.state_dict(), '/home/v-tingdu/code/ex2/ex2_model1.pt')
+torch.save(model_2.state_dict(), '/home/v-tingdu/code/ex2/ex2_model2.pt')
 
 dim = 128  # test resolution, dim must be odd
 N = ntest * (dim + 1) ** 2
@@ -242,4 +242,4 @@ plt.grid()
 
 plt.tight_layout()
 plt.show(block=True)
-plt.savefig('code/ex2/ex2_loss.png')
+plt.savefig('/home/v-tingdu/code/ex2/ex2_loss.png')

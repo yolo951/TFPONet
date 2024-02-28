@@ -60,28 +60,28 @@ def get_modify(x, f):
 
 
 eps = 0.0001
-NS = 257
+NS = 641
 ntrain = 1000
 ntest = 100
 factor = 10
 learning_rate = 0.0002
-epochs = 2000
-step_size = 1000
-gamma = 0.2
+epochs = 1000
+step_size = 100
+gamma = 0.4
 alpha = 1
 
 # f1 = generate_data_1d.generate(begin=0.0, end=0.5, samples=1100, out_dim=641)
 # f2 = generate_data_1d.generate(begin=0.5, end=1.0, samples=1100, out_dim=641)
 # f = np.hstack((f1[:, :-1], f2))
 # np.save('f.npy', f)
-f = np.load('code/ex1/f.npy')
+f = np.load('/home/v-tingdu/code/ex1/f.npy')
 # 对输入的f不需要除以eps，他们只是相差一个共同的常数eps，如果是multi-eps的情形，输入的应该是f/eps
 # f = f/eps
 N_max = f.shape[-1]
 
 # u = tfpm(f, eps)
 # np.save('ex1_u.npy', u)
-u = np.load('code/ex1/ex1_u.npy')
+u = np.load('/home/v-tingdu/code/ex1/ex1_u.npy')
 # for i in range(10):
 #     plt.plot(f[i])
 # plt.savefig('/home/v-tingdu/code/icann/ex1_exam_f')
@@ -148,10 +148,10 @@ for ep in range(epochs):
 
 print('Total training time:', default_timer() - start, 's')
 loss_history["{}".format(NS)] = mse_history
-torch.save(model.state_dict(), 'code/ex1/ex1_model_256.pt')
+torch.save(model.state_dict(), '/home/v-tingdu/code/ex1/ex1_model_512.pt')
 
 
-dim = 257  # test resolution, dim must be odd
+dim = 1001  # test resolution, dim must be odd
 batch_size = dim
 N = ntest * dim
 f_test = f[-ntest:, :]
@@ -224,4 +224,4 @@ plt.grid()
 
 plt.tight_layout()
 plt.show(block=True)
-plt.savefig('code/ex1/ex1_loss_256.png')
+plt.savefig('/home/v-tingdu/code/ex1/ex1_loss_512.png')

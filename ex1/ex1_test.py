@@ -58,7 +58,7 @@ def get_modify(x, f):
 
 
 eps = 0.001
-NS = 257
+NS = 385
 ntrain = 1000
 ntest = 100
 ntest_show = 100
@@ -69,13 +69,13 @@ step_size = 50
 gamma = 0.6
 alpha = 1
 
-f = np.load('code/ex1/f.npy')
-u = np.load('code/ex1/ex1_u.npy')
+f = np.load('/home/v-tingdu/code/ex1/f.npy')
+u = np.load('/home/v-tingdu/code/ex1/ex1_u.npy')
 u *= factor
 
 N_max = f.shape[-1]
 model = TFPONet(NS,  1).to(device)
-model.load_state_dict(torch.load('code/ex1/ex1_model_256.pt')) 
+model.load_state_dict(torch.load('/home/v-tingdu/code/ex1/ex1_model_384.pt')) 
 
 
 
@@ -94,7 +94,7 @@ max_modify = ab.max(axis=0)
 min_modify = ab.min(axis=0)
 
 
-dim = 513  # test resolution, dim must be odd
+dim = 1001  # test resolution, dim must be odd
 batch_size = dim
 N = ntest * dim
 f_test = f[-ntest:, :]
@@ -133,24 +133,24 @@ with torch.no_grad():
 pred = pred.cpu()
 residual = pred - u_test
 
-for i in range(ntest):
-    fig = plt.figure(figsize=(8, 4), dpi=150)
-    plt.subplot(1, 2, 1)
-    plt.title("ground truth")
-    plt.plot(grid_t, u_test[i] / factor, label='ground truth')
-    plt.plot(grid_t, pred[i] / factor, label='prediction')
-    plt.xlabel("x")
-    plt.ylabel("$u_g$:ground truth")
-    plt.legend()
-    plt.grid()
+# for i in range(ntest):
+#     fig = plt.figure(figsize=(8, 4), dpi=150)
+#     plt.subplot(1, 2, 1)
+#     plt.title("ground truth")
+#     plt.plot(grid_t, u_test[i] / factor, label='ground truth')
+#     plt.plot(grid_t, pred[i] / factor, label='prediction')
+#     plt.xlabel("x")
+#     plt.ylabel("$u_g$:ground truth")
+#     plt.legend()
+#     plt.grid()
 
-    plt.subplot(1, 2, 2)
-    plt.title("prediction")
-    plt.plot(grid_t, residual[i] / factor)
-    plt.xlabel("x")
-    plt.ylabel("$u_p$:predictions")
-    plt.grid()
+#     plt.subplot(1, 2, 2)
+#     plt.title("prediction")
+#     plt.plot(grid_t, residual[i] / factor)
+#     plt.xlabel("x")
+#     plt.ylabel("$u_p$:predictions")
+#     plt.grid()
 
-    plt.tight_layout()
-    plt.show(block=True)
-    plt.savefig('code/ex1/alltestfig/ex1_fig{}.png'.format(i))
+#     plt.tight_layout()
+#     plt.show(block=True)
+#     plt.savefig('code/ex1/alltestfig/ex1_fig{}.png'.format(i))
