@@ -59,13 +59,13 @@ def get_modify(x, f):
 
 
 
-NS = 129
+NS = 385
 ntrain = 1000
 ntest = 100
 factor = 10
-learning_rate = 0.0005
+learning_rate = 0.0003
 epochs = 1000
-step_size = 60
+step_size = 70
 gamma = 0.6
 alpha = 1
 
@@ -148,7 +148,7 @@ for ep in range(epochs):
 
 print('Total training time:', default_timer() - start, 's')
 loss_history["{}".format(NS)] = mse_history
-torch.save(model.state_dict(), 'ex1_2/model_128.pt')
+torch.save(model.state_dict(), 'ex1_2/model_384.pt')
 
 
 dim = 1001  # test resolution, dim must be odd
@@ -225,4 +225,4 @@ plt.grid()
 
 plt.tight_layout()
 plt.show()
-plt.savefig('ex1_2/loss_128.png')
+plt.savefig('ex1_2/loss_384.png')
