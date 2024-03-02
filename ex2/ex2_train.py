@@ -43,10 +43,10 @@ def get_modify(x, y):
 
 ntrain = 500
 ntest = 50
-learning_rate = 0.0002
+learning_rate = 0.0001
 epochs = 2000
-step_size = 200
-gamma = 0.4
+step_size = 400
+gamma = 0.2
 ap = 1
 factor = 10
 
@@ -119,7 +119,7 @@ disc_point_modify = torch.tensor(disc_point_modify, dtype=torch.float32).to(devi
 train_loader = torch.utils.data.DataLoader(torch.utils.data.TensorDataset(input_f, input_loc_1, input_loc_2,
                                                                           input_modify_1, input_modify_2, output_1,
                                                                           output_2),
-                                           batch_size=260, shuffle=True)
+                                           batch_size=520, shuffle=True)
 # batch_size = ratio*(NS+1)
 
 model_1 = TFPONet2D(2*NS + 1, 2).to(device)
