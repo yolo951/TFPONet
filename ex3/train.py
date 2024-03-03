@@ -1,6 +1,6 @@
 
 import sys
-sys.path.append('D:\pycharm\pycharm_project\TFPONet')
+sys.path.append('/home/v-tingdu/code')
 import pdb
 
 import importlib
@@ -76,9 +76,9 @@ def get_modify(x, f):
 ntrain = 1000
 ntest = 100
 factor = 10
-learning_rate = 0.0002
-epochs = 10
-step_size = 30
+learning_rate = 0.002
+epochs = 100
+step_size = 70
 gamma = 0.6
 alpha = 1
 
@@ -109,6 +109,7 @@ loss_history = dict()
 
 NS = 129
 mse_history = []
+mse_data_history = []
 mse_jump_history = []
 mse_jump_deriv_history = []
 print("N value : ", NS - 1)
@@ -168,6 +169,7 @@ for ep in range(epochs):
     model_2.train()
     t1 = default_timer()
     train_mse = 0
+    train_mse_data = 0
     train_mse_jump = 0
     train_mse_jump_deriv = 0
     for x, l_1, l_2, e_1, e_2, y_1, y_2 in train_loader:
@@ -183,7 +185,8 @@ for ep in range(epochs):
         out_2 = model_2(x, l_2, e_2[:, 0].reshape((-1, 1)), e_2[:, 1].reshape((-1, 1)))
         mse_1 = F.mse_loss(out_1.view(out_1.numel(), -1), y_1.view(y_1.numel(), -1), reduction='mean')
         mse_2 = F.mse_loss(out_2.view(out_2.numel(), -1), y_2.view(y_2.numel(), -1), reduction='mean')
-        mse = mse_1 + mse_2
+        mse_data = mse_1 + mse_2
+        mse = mse_data
         point.requires_grad_(True)
         out_1 = model_1(x, point, point_airy_00, point_airy_01)
         out_2 = model_2(x, point, point_airy_10, point_airy_11)
@@ -199,6 +202,7 @@ for ep in range(epochs):
         optimizer_1.step()
         optimizer_2.step()
         train_mse += mse.item()
+        train_mse_data += mse_data.item()
         train_mse_jump += mse_jump.item()
         train_mse_jump_deriv += mse_jump_deriv.item()
     scheduler_1.step()
@@ -207,6 +211,7 @@ for ep in range(epochs):
     train_mse /= len(train_loader)
     t2 = default_timer()
     mse_history.append(train_mse)
+    mse_data_history.append(train_mse_data / len(train_loader))
     mse_jump_history.append(train_mse_jump / len(train_loader))
     mse_jump_deriv_history.append(train_mse_jump_deriv / len(train_loader))
     print('Epoch {:d}/{:d}, MSE = {:.6f}, using {:.6f}s'.format(ep + 1, epochs, train_mse, t2 - t1))
@@ -309,6 +314,7 @@ plt.title("training loss")
 plt.plot(loss_history["{}".format(NS)], label='total loss')
 plt.plot(mse_jump_history, label='jump loss')
 plt.plot(mse_jump_deriv_history, label='jump deriv loss')
+plt.plot(mse_data_history, label='data loss')
 plt.yscale("log")
 plt.xlabel("epoch")
 plt.legend()
