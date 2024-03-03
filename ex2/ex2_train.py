@@ -43,15 +43,15 @@ def get_modify(x, y):
 
 ntrain = 500
 ntest = 50
-learning_rate = 0.0001
+learning_rate = 0.00004
 epochs = 2000
-step_size = 400
-gamma = 0.2
+step_size = 200
+gamma = 0.4
 ap = 1
 factor = 10
 
-f1 = np.load('/home/v-tingdu/code/ex2/ex2_f1.npy')
-f2 = np.load('/home/v-tingdu/code/ex2/ex2_f2.npy')
+f1 = np.load('ex2/ex2_f1.npy')
+f2 = np.load('ex2/ex2_f2.npy')
 ## f1.shape[-1]=f2.shape[-1]=2**6+1
 # f1, f2 = ex2_generate_data.data_generate(ntrain+ntest, 2**7+1)
 # np.save('/home/v-tingdu/code/icann/ex2_f1.npy',f1)
@@ -59,8 +59,8 @@ f2 = np.load('/home/v-tingdu/code/ex2/ex2_f2.npy')
 # u1, u2 = ex2_generate_data.dim2_tfpm(f1, f2)
 # np.save('/home/v-tingdu/code/ex2/ex2_u1.npy', u1)
 # np.save('/home/v-tingdu/code/ex2/ex2_u2.npy', u2)
-u1 = np.load('/home/v-tingdu/code/ex2/ex2_u1.npy')
-u2 = np.load('/home/v-tingdu/code/ex2/ex2_u2.npy')
+u1 = np.load('ex2/ex2_u1.npy')
+u2 = np.load('ex2/ex2_u2.npy')
 
 u1 *= factor
 u2 *= factor
@@ -124,10 +124,8 @@ train_loader = torch.utils.data.DataLoader(torch.utils.data.TensorDataset(input_
 
 model_1 = TFPONet2D(2*NS + 1, 2).to(device)
 model_2 = TFPONet2D(2*NS + 1, 2).to(device)
-# model_1 = TFPONet2D(2*NS + 1,  2).to(device)
-# model_1.load_state_dict(torch.load('code/ex2/ex2_model1.pt'))
-# model_2 =  TFPONet2D(2*NS + 1,  2).to(device)
-# model_2.load_state_dict(torch.load('code/ex2/ex2_model2.pt'))
+model_1.load_state_dict(torch.load('ex2/ex2_model1.pt'))
+model_2.load_state_dict(torch.load('ex2/ex2_model2.pt'))
 optimizer_1 = Adam(model_1.parameters(), lr=learning_rate, weight_decay=1e-4)
 scheduler_1 = torch.optim.lr_scheduler.StepLR(optimizer_1, step_size=step_size, gamma=gamma)
 optimizer_2 = Adam(model_2.parameters(), lr=learning_rate, weight_decay=1e-4)
@@ -174,10 +172,10 @@ for ep in range(epochs):
     mse_jump_deriv_history.append(train_mse_jump_deriv / len(train_loader))
     print('Epoch {:d}/{:d}, MSE = {:.6f}, using {:.6f}s'.format(ep + 1, epochs, train_mse, t2 - t1))
     if not (ep+1)%100:
-        torch.save(model_1.state_dict(), '/home/v-tingdu/code/ex2/ex2_model1.pt')
-        torch.save(model_2.state_dict(), '/home/v-tingdu/code/ex2/ex2_model2.pt')
-        torch.save(torch.tensor(mse_history), '/home/v-tingdu/code/ex2/mse_history.pt')
-        torch.save(torch.tensor(mse_jump_history), '/home/v-tingdu/code/ex2/mse_jump_history.pt')
+        torch.save(model_1.state_dict(), 'ex2/ex2_model1_update.pt')
+        torch.save(model_2.state_dict(), 'ex2/ex2_model2_update.pt')
+        torch.save(torch.tensor(mse_history), 'ex2/mse_history.pt')
+        torch.save(torch.tensor(mse_jump_history), 'ex2/mse_jump_history.pt')
         print(ep)
     # print('\repoch {:d}/{:d} , MSE = {:.6f}, using {:.6f}s'.format(ep + 1, epochs, train_mse, t2 - t1), end='',
     #       flush=False)
@@ -185,8 +183,8 @@ for ep in range(epochs):
 print('Total training time:', default_timer() - start, 's')
 loss_history["{}".format(NS)] = mse_history
 
-torch.save(model_1.state_dict(), '/home/v-tingdu/code/ex2/ex2_model1.pt')
-torch.save(model_2.state_dict(), '/home/v-tingdu/code/ex2/ex2_model2.pt')
+torch.save(model_1.state_dict(), 'ex2/ex2_model1_update.pt')
+torch.save(model_2.state_dict(), 'ex2/ex2_model2_update.pt')
 
 dim = 128  # test resolution, dim must be odd
 N = ntest * (dim + 1) ** 2
@@ -252,4 +250,4 @@ plt.grid()
 
 plt.tight_layout()
 plt.show(block=True)
-plt.savefig('/home/v-tingdu/code/ex2/ex2_loss.png')
+plt.savefig('ex2/ex2_loss.png')
