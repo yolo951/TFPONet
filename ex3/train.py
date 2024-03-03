@@ -76,8 +76,8 @@ def get_modify(x, f):
 ntrain = 1000
 ntest = 100
 factor = 10
-learning_rate = 0.0005
-epochs = 100
+learning_rate = 0.0002
+epochs = 10
 step_size = 30
 gamma = 0.6
 alpha = 1
@@ -85,18 +85,23 @@ alpha = 1
 # f=generate_data_1d.generate(end=y_end, samples=1100)
 # np.save('ex4_f.npy',f)
 f = np.load('ex3/f.npy')
-# u = discontinuous_tfpm(f)
-# np.save('ex3/u.npy', u)
-u = np.load('ex3/u.npy')
-for i in range(10):
-    plt.plot(f[i])
-plt.savefig('ex3/daishan_f')
-plt.figure()
-for i in range(100):
-    plt.plot(u[i])
-plt.savefig('ex3/daishan_u')
+# u1, u2 = discontinuous_tfpm(f)
+# np.save('ex3/u1.npy', u1)
+# np.save('ex3/u2.npy', u2)
+u1 = np.load('ex3/u1.npy')
+u2 = np.load('ex3/u2.npy')
+# idx = np.arange(0, 1001)
+# for i in range(10):
+#     plt.plot(idx, f[i].flatten())
+# plt.savefig('ex3/daishan_f')
+# plt.figure()
+# for i in range(10):
+#     plt.plot(idx[:501], u1[i].flatten())
+#     plt.plot(idx[500:], u2[i].flatten())
+# plt.savefig('ex3/daishan_u')
 
-u *= factor
+u1 *= factor
+u2 *= factor
 N_max = f.shape[-1]
 
 loss_history = dict()
@@ -112,29 +117,30 @@ f = interpolate.interp1d(np.linspace(0, 1, N_max), f)(np.linspace(0, 1, NS))
 f_train = f[:ntrain, :]
 N = f_train.shape[0] * int((NS - 1) / 2)
 
-gridx_1 = np.linspace(0, 0.5 - 1/(NS - 1), int((NS - 1) / 2))
-gridx_2 = np.linspace(0.5 + 1/(NS - 1), 1, int((NS - 1) / 2))
-gridy_1 = np.array([quad(integrand_y, 0, gridx_1[i])[0] for i in range(int((NS - 1) / 2))])
-gridy_2 = np.array([quad(integrand_y, 0, gridx_2[i])[0] for i in range(int((NS - 1) / 2))])
-grid_h = np.linspace(0, 1, N_max)
-u_train_1 = interpolate.interp1d(grid_h, u[:ntrain, :])(gridx_1)
-u_train_2 = interpolate.interp1d(grid_h, u[:ntrain, :])(gridx_2)
+gridx_1 = np.linspace(0, 0.5, int((NS + 1) / 2))
+gridx_2 = np.linspace(0.5, 1, int((NS + 1) / 2))
+gridy_1 = np.array([quad(integrand_y, 0, gridx_1[i])[0] for i in range(int((NS + 1) / 2))])
+gridy_2 = np.array([quad(integrand_y, 0, gridx_2[i])[0] for i in range(int((NS + 1) / 2))])
+grid_h_1 = np.linspace(0, 0.5, int((N_max+1)/2))
+grid_h_2 = np.linspace(0.5, 1, int((N_max+1)/2))
+u_train_1 = interpolate.interp1d(grid_h_1, u1[:ntrain, :])(gridx_1[:-1])
+u_train_2 = interpolate.interp1d(grid_h_2, u2[:ntrain, :])(gridx_2[1:])
 
-ab_1 = get_modify(gridy_1, q(gridx_1))
-ab_2 = get_modify(gridy_2, q(gridx_2))
+ab_1 = get_modify(gridy_1, q1(gridx_1))
+ab_2 = get_modify(gridy_2, q2(gridx_2))
 input_f = np.repeat(f_train, int((NS - 1) / 2), axis=0)
-input_loc_1 = np.tile(gridx_1, f_train.shape[0]).reshape((N, 1))
-input_loc_2 = np.tile(gridx_2, f_train.shape[0]).reshape((N, 1))
-input_modify_1 = np.tile(ab_1, (f_train.shape[0], 1))
-input_modify_2 = np.tile(ab_2, (f_train.shape[0], 1))
-output_1 = u_train_1.reshape((N, 1))
-output_2 = u_train_2.reshape((N, 1))
+input_loc_1 = np.tile(gridx_1[:-1], f_train.shape[0]).reshape((N, 1))
+input_loc_2 = np.tile(gridx_2[1:], f_train.shape[0]).reshape((N, 1))
 max_modify_1 = ab_1.max(axis=0)
 min_modify_1 = ab_1.min(axis=0)
 max_modify_2 = ab_2.max(axis=0)
 min_modify_2 = ab_2.min(axis=0)
-input_modify_1 = (input_modify_1 - min_modify_1)/(max_modify_1 - min_modify_1)
-input_modify_2 = (input_modify_2 - min_modify_2)/(max_modify_2 - min_modify_2)
+ab_1 = (ab_1 - min_modify_1)/(max_modify_1 - min_modify_1)
+ab_2 = (ab_2 - min_modify_2)/(max_modify_2 - min_modify_2)
+input_modify_1 = np.tile(ab_1[:-1], (f_train.shape[0], 1))
+input_modify_2 = np.tile(ab_2[1:], (f_train.shape[0], 1))
+output_1 = u_train_1.reshape((N, 1))
+output_2 = u_train_2.reshape((N, 1))
 input_f = torch.Tensor(input_f).to(device)
 input_loc_1 = torch.Tensor(input_loc_1).to(device)
 input_loc_2 = torch.Tensor(input_loc_2).to(device)
@@ -144,8 +150,8 @@ output_1 = torch.Tensor(output_1).to(device)
 output_2 = torch.Tensor(output_2).to(device)
 disc_point = torch.tensor([0.5]).to(device)
 disc_point_airy = torch.zeros((2, 2)).to(device)
-disc_point_airy[0] = torch.tensor(get_modify(np.array([gridy_1[-1], y_disc]), q1(np.array([0.5-1/(NS-1), 0.5])))[1])
-disc_point_airy[1] = torch.tensor(get_modify(np.array([y_disc, gridy_2[0]]), q2(np.array([0.5, 0.5+1/(NS-1)])))[0])
+disc_point_airy[0] = torch.tensor(ab_1[-1])
+disc_point_airy[1] = torch.tensor(ab_2[0])
 train_loader = torch.utils.data.DataLoader(torch.utils.data.TensorDataset(input_f, input_loc_1, input_loc_2,
                                                                           input_modify_1, input_modify_2, output_1, output_2),
                                            batch_size=256, shuffle=True)
@@ -182,13 +188,13 @@ for ep in range(epochs):
         out_1 = model_1(x, point, point_airy_00, point_airy_01)
         out_2 = model_2(x, point, point_airy_10, point_airy_11)
         mse_jump = F.mse_loss(out_2 - factor, out_1, reduction='mean')
-        mse += 5 * mse_jump
+        mse += 0.5 * mse_jump
         grad_1 = torch.autograd.grad(out_1, point, grad_outputs=torch.ones_like(out_1), create_graph=False,
                             only_inputs=True, retain_graph=True)[0]
         grad_2 = torch.autograd.grad(out_2, point, grad_outputs=torch.ones_like(out_2), create_graph=False,
                                      only_inputs=True, retain_graph=True)[0]
         mse_jump_deriv = F.mse_loss(grad_2 - factor, grad_1, reduction='mean')
-        mse += 5 * mse_jump_deriv
+        mse += 0.0001 * mse_jump_deriv
         mse.backward()
         optimizer_1.step()
         optimizer_2.step()
@@ -221,8 +227,8 @@ grid_tx_2 = np.linspace(0.5 + 1/(dim - 1), 1, int((dim - 1) / 2))
 grid_ty_1 = np.array([quad(integrand_y, 0, grid_tx_1[i])[0] for i in range(int((dim - 1) / 2))])
 grid_ty_2 = np.array([quad(integrand_y, 0, grid_tx_2[i])[0] for i in range(int((dim - 1) / 2))])
 f_test = f[-ntest:, :]
-u_test_1 = interpolate.interp1d(grid_h, u[-ntest:, :])(grid_tx_1)
-u_test_2 = interpolate.interp1d(grid_h, u[-ntest:, :])(grid_tx_2)
+u_test_1 = interpolate.interp1d(grid_h_1, u1[-ntest:, :])(grid_tx_1)
+u_test_2 = interpolate.interp1d(grid_h_2, u2[-ntest:, :])(grid_tx_2)
 
 ab_1 = get_modify(grid_ty_1, q(grid_tx_1))
 ab_2 = get_modify(grid_ty_2, q(grid_tx_2))
