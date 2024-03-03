@@ -187,14 +187,14 @@ for ep in range(epochs):
         point.requires_grad_(True)
         out_1 = model_1(x, point, point_airy_00, point_airy_01)
         out_2 = model_2(x, point, point_airy_10, point_airy_11)
-        mse_jump = F.mse_loss(out_2 - factor, out_1, reduction='mean')
-        mse += 0.5 * mse_jump
+        mse_jump = 0.5 * F.mse_loss(out_2 - factor, out_1, reduction='mean')
+        mse += mse_jump
         grad_1 = torch.autograd.grad(out_1, point, grad_outputs=torch.ones_like(out_1), create_graph=False,
                             only_inputs=True, retain_graph=True)[0]
         grad_2 = torch.autograd.grad(out_2, point, grad_outputs=torch.ones_like(out_2), create_graph=False,
                                      only_inputs=True, retain_graph=True)[0]
-        mse_jump_deriv = F.mse_loss(grad_2 - factor, grad_1, reduction='mean')
-        mse += 0.0001 * mse_jump_deriv
+        mse_jump_deriv = 0.0001 * F.mse_loss(grad_2 - factor, grad_1, reduction='mean')
+        mse += mse_jump_deriv
         mse.backward()
         optimizer_1.step()
         optimizer_2.step()
@@ -219,7 +219,7 @@ loss_history["{}".format(NS)] = mse_history
 torch.save(model_1.state_dict(), 'ex3/model1_128.pt')
 torch.save(model_2.state_dict(), 'ex3/model2_128.pt')
 
-dim = 1001  # test resolution, dim must be odd
+dim = 257  # test resolution, dim must be odd
 batch_size = int((dim- 1) / 2)
 N = ntest * int((dim- 1) / 2)
 grid_tx_1 = np.linspace(0, 0.5 - 1/(dim - 1), int((dim - 1) / 2))
@@ -230,8 +230,8 @@ f_test = f[-ntest:, :]
 u_test_1 = interpolate.interp1d(grid_h_1, u1[-ntest:, :])(grid_tx_1)
 u_test_2 = interpolate.interp1d(grid_h_2, u2[-ntest:, :])(grid_tx_2)
 
-ab_1 = get_modify(grid_ty_1, q(grid_tx_1))
-ab_2 = get_modify(grid_ty_2, q(grid_tx_2))
+ab_1 = get_modify(grid_ty_1, q1(grid_tx_1))
+ab_2 = get_modify(grid_ty_2, q2(grid_tx_2))
 input_f = np.repeat(f_test, int((dim - 1) / 2), axis=0)
 input_loc_1 = np.tile(grid_tx_1, f_test.shape[0]).reshape((N, 1))
 input_loc_2 = np.tile(grid_tx_2, f_test.shape[0]).reshape((N, 1))
