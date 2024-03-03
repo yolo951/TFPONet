@@ -1,6 +1,6 @@
 
 import sys 
-sys.path.append('D:\pycharm\pycharm_project\TFPONet')
+sys.path.append('/home/v-tingdu/code')
 
 import importlib
 import numpy as np
@@ -23,11 +23,11 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 
 eps = 0.0001
-NS = 641
+NS = 513
 ntrain = 1000
 ntest = 100
 factor = 10
-learning_rate = 0.0002
+learning_rate = 0.0003
 epochs = 1000
 step_size = 60
 gamma = 0.6
@@ -102,7 +102,7 @@ for ep in range(epochs):
 
 print('Total training time:', default_timer() - start, 's')
 loss_history["{}".format(NS)] = mse_history
-torch.save(model.state_dict(), 'ex1/vanila_ex1_model_640.pt')
+torch.save(model.state_dict(), 'ex1/vanila_ex1_model_512.pt')
 
 
 dim = 1001  # test resolution, dim must be odd
@@ -173,4 +173,4 @@ plt.grid()
 
 plt.tight_layout()
 plt.show(block=True)
-plt.savefig('ex1/ex1_vanila_loss_640.png')
+plt.savefig('ex1/ex1_vanila_loss_512.png')

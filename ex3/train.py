@@ -31,8 +31,8 @@ def f_a(x):
 
 integrand_y = lambda x: 1 / f_a(x)
 # 原始问题在0.5处间断
-x_disc = quad(integrand_y, 0, 0.5)[0]
-x_end = quad(integrand_y, 0, 1)[0]
+y_disc = quad(integrand_y, 0, 0.5)[0]
+y_end = quad(integrand_y, 0, 1)[0]
 
 def f_b(x):
     return np.where(x <= 0.5, 1000 * (1 + 2 * np.sin(x) ** 2), 100 * (6 * x - np.sin(2 * x)))
@@ -82,12 +82,19 @@ step_size = 30
 gamma = 0.6
 alpha = 1
 
-# f=generate_data_1d.generate(end=x_end, samples=1100)
+# f=generate_data_1d.generate(end=y_end, samples=1100)
 # np.save('ex4_f.npy',f)
-f = np.load('ex4_f.npy')
-u = discontinuous_tfpm(f)
-np.save('ex4_u.npy', u)
-# u = np.load('ex4_u.npy')
+f = np.load('ex3/f.npy')
+# u = discontinuous_tfpm(f)
+# np.save('ex3/u.npy', u)
+u = np.load('ex3/u.npy')
+for i in range(10):
+    plt.plot(f[i])
+plt.savefig('ex3/daishan_f')
+plt.figure()
+for i in range(100):
+    plt.plot(u[i])
+plt.savefig('ex3/daishan_u')
 
 u *= factor
 N_max = f.shape[-1]
@@ -95,7 +102,7 @@ N_max = f.shape[-1]
 loss_history = dict()
 
 
-NS = 257
+NS = 129
 mse_history = []
 mse_jump_history = []
 mse_jump_deriv_history = []
@@ -137,14 +144,14 @@ output_1 = torch.Tensor(output_1).to(device)
 output_2 = torch.Tensor(output_2).to(device)
 disc_point = torch.tensor([0.5]).to(device)
 disc_point_airy = torch.zeros((2, 2)).to(device)
-disc_point_airy[0] = torch.tensor(get_modify(np.array([0.5-1/(NS-1), 0.5]), q_1(np.array([0.5-1/(NS-1), 0.5])))[1])
-disc_point_airy[1] = torch.tensor(get_modify(np.array([0.5, 0.5+1/(NS-1)]), q_2(np.array([0.5, 0.5+1/(NS-1)])))[0])
+disc_point_airy[0] = torch.tensor(get_modify(np.array([gridy_1[-1], y_disc]), q1(np.array([0.5-1/(NS-1), 0.5])))[1])
+disc_point_airy[1] = torch.tensor(get_modify(np.array([y_disc, gridy_2[0]]), q2(np.array([0.5, 0.5+1/(NS-1)])))[0])
 train_loader = torch.utils.data.DataLoader(torch.utils.data.TensorDataset(input_f, input_loc_1, input_loc_2,
                                                                           input_modify_1, input_modify_2, output_1, output_2),
                                            batch_size=256, shuffle=True)
 
-model_1 = deeponet.DeepONet(NS,  1).to(device)
-model_2 = deeponet.DeepONet(NS,  1).to(device)
+model_1 = TFPONet(NS,  1).to(device)
+model_2 = TFPONet(NS,  1).to(device)
 optimizer_1 = Adam(model_1.parameters(), lr=learning_rate, weight_decay=1e-4)
 scheduler_1 = torch.optim.lr_scheduler.StepLR(optimizer_1, step_size=step_size, gamma=gamma)
 optimizer_2 = Adam(model_2.parameters(), lr=learning_rate, weight_decay=1e-4)
@@ -203,23 +210,25 @@ for ep in range(epochs):
 print('Total training time:', default_timer() - start, 's')
 loss_history["{}".format(NS)] = mse_history
 
-torch.save(model_1.state_dict(), 'ver4_model1_ex2.pt')
-torch.save(model_2.state_dict(), 'ver4_model2_ex2.pt')
+torch.save(model_1.state_dict(), 'ex3/model1_128.pt')
+torch.save(model_2.state_dict(), 'ex3/model2_128.pt')
 
-dim = 513  # test resolution, dim must be odd
+dim = 1001  # test resolution, dim must be odd
 batch_size = int((dim- 1) / 2)
 N = ntest * int((dim- 1) / 2)
-grid_t_1 = np.linspace(0, 0.5 - 1/(dim - 1), int((dim - 1) / 2))
-grid_t_2 = np.linspace(0.5 + 1/(dim - 1), 1, int((dim - 1) / 2))
+grid_tx_1 = np.linspace(0, 0.5 - 1/(dim - 1), int((dim - 1) / 2))
+grid_tx_2 = np.linspace(0.5 + 1/(dim - 1), 1, int((dim - 1) / 2))
+grid_ty_1 = np.array([quad(integrand_y, 0, grid_tx_1[i])[0] for i in range(int((dim - 1) / 2))])
+grid_ty_2 = np.array([quad(integrand_y, 0, grid_tx_2[i])[0] for i in range(int((dim - 1) / 2))])
 f_test = f[-ntest:, :]
-u_test_1 = interpolate.interp1d(grid_h, u[-ntest:, :])(grid_t_1)
-u_test_2 = interpolate.interp1d(grid_h, u[-ntest:, :])(grid_t_2)
+u_test_1 = interpolate.interp1d(grid_h, u[-ntest:, :])(grid_tx_1)
+u_test_2 = interpolate.interp1d(grid_h, u[-ntest:, :])(grid_tx_2)
 
-ab_1 = get_modify(grid_t_1, q(grid_t_1))
-ab_2 = get_modify(grid_t_2, q(grid_t_2))
+ab_1 = get_modify(grid_ty_1, q(grid_tx_1))
+ab_2 = get_modify(grid_ty_2, q(grid_tx_2))
 input_f = np.repeat(f_test, int((dim - 1) / 2), axis=0)
-input_loc_1 = np.tile(grid_t_1, f_test.shape[0]).reshape((N, 1))
-input_loc_2 = np.tile(grid_t_2, f_test.shape[0]).reshape((N, 1))
+input_loc_1 = np.tile(grid_tx_1, f_test.shape[0]).reshape((N, 1))
+input_loc_2 = np.tile(grid_tx_2, f_test.shape[0]).reshape((N, 1))
 input_modify_1 = np.tile(ab_1, (f_test.shape[0], 1))
 input_modify_2 = np.tile(ab_2, (f_test.shape[0], 1))
 output_1 = u_test_1.reshape((N, 1))
@@ -265,8 +274,8 @@ fig = plt.figure(figsize=(8, 6), dpi=150)
 plt.subplot(2, 2, 1)
 plt.title("ground truth")
 for i in range(ntest):
-    plt.plot(grid_t_1, u_test_1[i] / factor)
-    plt.plot(grid_t_2, u_test_2[i] / factor)
+    plt.plot(grid_tx_1, u_test_1[i] / factor)
+    plt.plot(grid_tx_2, u_test_2[i] / factor)
 plt.xlabel("x")
 plt.ylabel("$u_g$:ground truth")
 plt.grid()
@@ -274,8 +283,8 @@ plt.grid()
 plt.subplot(2, 2, 2)
 plt.title("prediction")
 for i in range(ntest):
-    plt.plot(grid_t_1, pred_1[i] / factor)
-    plt.plot(grid_t_2, pred_2[i] / factor)
+    plt.plot(grid_tx_1, pred_1[i] / factor)
+    plt.plot(grid_tx_2, pred_2[i] / factor)
 plt.xlabel("x")
 plt.ylabel("$u_p$:predictions")
 plt.grid()
@@ -283,8 +292,8 @@ plt.grid()
 plt.subplot(2, 2, 3)
 plt.title("residuals")
 for i in range(ntest):
-    plt.plot(grid_t_1, residual_1[i] / factor)
-    plt.plot(grid_t_2, residual_2[i] / factor)
+    plt.plot(grid_tx_1, residual_1[i] / factor)
+    plt.plot(grid_tx_2, residual_2[i] / factor)
 plt.xlabel("x")
 plt.ylabel("$u_p$-$u_g$:residual")
 plt.grid()
@@ -301,4 +310,4 @@ plt.grid()
 
 plt.tight_layout()
 plt.show(block=True)
-plt.savefig('loss')
+plt.savefig('ex3/loss_128.png')
