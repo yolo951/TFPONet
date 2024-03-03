@@ -59,7 +59,7 @@ def get_modify(x, f):
 
 
 
-NS = 385
+NS = 641
 ntrain = 1000
 ntest = 100
 factor = 10
@@ -123,6 +123,7 @@ train_loader = torch.utils.data.DataLoader(torch.utils.data.TensorDataset(input_
                                            batch_size=256, shuffle=True)
 
 model = TFPONet(NS,  1).to(device)
+# model.load_state_dict(torch.load('ex1_2/model_384.pt'))
 optimizer = Adam(model.parameters(), lr=learning_rate, weight_decay=1e-4)
 scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=step_size, gamma=gamma)
 start = default_timer()
@@ -148,7 +149,7 @@ for ep in range(epochs):
 
 print('Total training time:', default_timer() - start, 's')
 loss_history["{}".format(NS)] = mse_history
-torch.save(model.state_dict(), 'ex1_2/model_384.pt')
+torch.save(model.state_dict(), 'ex1_2/model_640.pt')
 
 
 dim = 1001  # test resolution, dim must be odd
@@ -225,4 +226,4 @@ plt.grid()
 
 plt.tight_layout()
 plt.show()
-plt.savefig('ex1_2/loss_384.png')
+plt.savefig('ex1_2/loss_640.png')
