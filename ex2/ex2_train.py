@@ -124,6 +124,10 @@ train_loader = torch.utils.data.DataLoader(torch.utils.data.TensorDataset(input_
 
 model_1 = TFPONet2D(2*NS + 1, 2).to(device)
 model_2 = TFPONet2D(2*NS + 1, 2).to(device)
+# model_1 = TFPONet2D(2*NS + 1,  2).to(device)
+# model_1.load_state_dict(torch.load('code/ex2/ex2_model1.pt'))
+# model_2 =  TFPONet2D(2*NS + 1,  2).to(device)
+# model_2.load_state_dict(torch.load('code/ex2/ex2_model2.pt'))
 optimizer_1 = Adam(model_1.parameters(), lr=learning_rate, weight_decay=1e-4)
 scheduler_1 = torch.optim.lr_scheduler.StepLR(optimizer_1, step_size=step_size, gamma=gamma)
 optimizer_2 = Adam(model_2.parameters(), lr=learning_rate, weight_decay=1e-4)
@@ -159,7 +163,7 @@ for ep in range(epochs):
         optimizer_2.step()
         train_mse += mse.item()
         train_mse_jump += mse_jump.item()
-
+        
     scheduler_1.step()
     scheduler_2.step()
     # train_mse /= ntrain
@@ -169,6 +173,12 @@ for ep in range(epochs):
     mse_jump_history.append(train_mse_jump / len(train_loader))
     mse_jump_deriv_history.append(train_mse_jump_deriv / len(train_loader))
     print('Epoch {:d}/{:d}, MSE = {:.6f}, using {:.6f}s'.format(ep + 1, epochs, train_mse, t2 - t1))
+    if not (ep+1)%100:
+        torch.save(model_1.state_dict(), '/home/v-tingdu/code/ex2/ex2_model1.pt')
+        torch.save(model_2.state_dict(), '/home/v-tingdu/code/ex2/ex2_model2.pt')
+        torch.save(torch.tensor(mse_history), '/home/v-tingdu/code/ex2/mse_history.pt')
+        torch.save(torch.tensor(mse_jump_history), '/home/v-tingdu/code/ex2/mse_jump_history.pt')
+        print(ep)
     # print('\repoch {:d}/{:d} , MSE = {:.6f}, using {:.6f}s'.format(ep + 1, epochs, train_mse, t2 - t1), end='',
     #       flush=False)
 
