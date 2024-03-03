@@ -219,7 +219,7 @@ loss_history["{}".format(NS)] = mse_history
 torch.save(model_1.state_dict(), 'ex3/model1_128.pt')
 torch.save(model_2.state_dict(), 'ex3/model2_128.pt')
 
-dim = 257  # test resolution, dim must be odd
+dim = 129  # test resolution, dim must be odd
 batch_size = int((dim- 1) / 2)
 N = ntest * int((dim- 1) / 2)
 grid_tx_1 = np.linspace(0, 0.5 - 1/(dim - 1), int((dim - 1) / 2))
