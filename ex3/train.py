@@ -1,6 +1,6 @@
 
 import sys
-sys.path.append('/home/v-tingdu/code')
+sys.path.append('D:\pycharm\pycharm_project\TFPONet')
 import pdb
 
 import importlib
@@ -76,9 +76,9 @@ def get_modify(x, f):
 ntrain = 1000
 ntest = 100
 factor = 10
-learning_rate = 0.002
-epochs = 100
-step_size = 70
+learning_rate = 0.0002
+epochs = 1000
+step_size = 60
 gamma = 0.6
 alpha = 1
 
@@ -114,6 +114,18 @@ mse_jump_history = []
 mse_jump_deriv_history = []
 print("N value : ", NS - 1)
 
+dim = 257  # test resolution, dim must be odd
+grid_tx_1 = np.linspace(0, 0.5, int((dim + 1) / 2))
+grid_tx_2 = np.linspace(0.5, 1, int((dim + 1) / 2))
+grid_ty_1 = np.array([quad(integrand_y, 0, grid_tx_1[i])[0] for i in range(int((dim + 1) / 2))])
+grid_ty_2 = np.array([quad(integrand_y, 0, grid_tx_2[i])[0] for i in range(int((dim + 1) / 2))])
+ab_1 = get_modify(grid_ty_1, q1(grid_tx_1))
+ab_2 = get_modify(grid_ty_2, q2(grid_tx_2))
+max_modify_1 = ab_1.max(axis=0)
+min_modify_1 = ab_1.min(axis=0)
+max_modify_2 = ab_2.max(axis=0)
+min_modify_2 = ab_2.min(axis=0)
+
 f = interpolate.interp1d(np.linspace(0, 1, N_max), f)(np.linspace(0, 1, NS))
 f_train = f[:ntrain, :]
 N = f_train.shape[0] * int((NS - 1) / 2)
@@ -132,10 +144,6 @@ ab_2 = get_modify(gridy_2, q2(gridx_2))
 input_f = np.repeat(f_train, int((NS - 1) / 2), axis=0)
 input_loc_1 = np.tile(gridx_1[:-1], f_train.shape[0]).reshape((N, 1))
 input_loc_2 = np.tile(gridx_2[1:], f_train.shape[0]).reshape((N, 1))
-max_modify_1 = ab_1.max(axis=0)
-min_modify_1 = ab_1.min(axis=0)
-max_modify_2 = ab_2.max(axis=0)
-min_modify_2 = ab_2.min(axis=0)
 ab_1 = (ab_1 - min_modify_1)/(max_modify_1 - min_modify_1)
 ab_2 = (ab_2 - min_modify_2)/(max_modify_2 - min_modify_2)
 input_modify_1 = np.tile(ab_1[:-1], (f_train.shape[0], 1))
@@ -224,7 +232,7 @@ loss_history["{}".format(NS)] = mse_history
 torch.save(model_1.state_dict(), 'ex3/model1_128.pt')
 torch.save(model_2.state_dict(), 'ex3/model2_128.pt')
 
-dim = 129  # test resolution, dim must be odd
+dim = 257  # test resolution, dim must be odd
 batch_size = int((dim- 1) / 2)
 N = ntest * int((dim- 1) / 2)
 grid_tx_1 = np.linspace(0, 0.5 - 1/(dim - 1), int((dim - 1) / 2))
