@@ -1,6 +1,6 @@
 
 import sys
-sys.path.append('D:\pycharm\pycharm_project\TFPONet')
+sys.path.append('/home/v-tingdu/code')
 import pdb
 
 import importlib
@@ -17,7 +17,7 @@ from tfponet import TFPONet
 from scipy import interpolate
 from scipy.special import airy
 from scipy.integrate import quad
-from tfpm import discontinuous_tfpm
+# from tfpm import discontinuous_tfpm
 from math import sqrt
 # import generate_data_1d
 
@@ -25,26 +25,24 @@ from math import sqrt
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 
-def f_a(x):
-    return np.where(x <= 0.5, 1 / (2 + 4 * np.sin(x) ** 2), 0.5)
+# def f_a(x):
+#     return np.where(x <= 0.5, 1 / (2 + 4 * np.sin(x) ** 2), 0.5)
 
 
-integrand_y = lambda x: 1 / f_a(x)
-# 原始问题在0.5处间断
-y_disc = quad(integrand_y, 0, 0.5)[0]
-y_end = quad(integrand_y, 0, 1)[0]
+# integrand_y = lambda x: 1 / f_a(x)
+# # 原始问题在0.5处间断
+# y_disc = quad(integrand_y, 0, 0.5)[0]
+# y_end = quad(integrand_y, 0, 1)[0]
 
-def f_b(x):
-    return np.where(x <= 0.5, 1000 * (1 + 2 * np.sin(x) ** 2), 100 * (6 * x - np.sin(2 * x)))
 
 def q(x):
-    return f_a(x) * f_b(x)
+    return np.where(x<=0.5, 5000.0, 100.0*(4.0+32.0*x))
 
 def q1(x):
-    return 500.0*np.ones_like(x)
+    return 5000.0*np.ones_like(x)
 
 def q2(x):
-    return 50 * (6 * x - np.sin(2 * x))
+    return 100.0*(4.0+32.0*x)
 
 def get_coeff(grid, f):
     N = len(grid)
@@ -78,27 +76,33 @@ ntest = 100
 factor = 10
 learning_rate = 0.0002
 epochs = 1000
-step_size = 60
+step_size = 100
 gamma = 0.6
 alpha = 1
 
 # f=generate_data_1d.generate(end=y_end, samples=1100)
 # np.save('ex4_f.npy',f)
-f = np.load('ex3/f.npy')
+f = np.load('/home/v-tingdu/code/ex3/f.npy')
+# u = np.load('/home/v-tingdu/code/ex3/u_ex2_discontinuous.npy')
+# u1 = np.zeros((1100, 501), dtype=np.float64)
+# u2 = np.zeros((1100, 501), dtype=np.float64)
+# u1[:] = u[:, :501]
+# u2[:] = u[:, 500:]
+# u2[:, 0] += 1
 # u1, u2 = discontinuous_tfpm(f)
-# np.save('ex3/u1.npy', u1)
-# np.save('ex3/u2.npy', u2)
-u1 = np.load('ex3/u1.npy')
-u2 = np.load('ex3/u2.npy')
+# np.save('/home/v-tingdu/code/ex3/u1.npy', u1)
+# np.save('/home/v-tingdu/code/ex3/u2.npy', u2)
+u1 = np.load('/home/v-tingdu/code/ex3/u1.npy')
+u2 = np.load('/home/v-tingdu/code/ex3/u2.npy')
 # idx = np.arange(0, 1001)
-# for i in range(10):
+# for i in range(1):
 #     plt.plot(idx, f[i].flatten())
-# plt.savefig('ex3/daishan_f')
+# plt.savefig('/home/v-tingdu/code/ex3/daishan_f.png')
 # plt.figure()
-# for i in range(10):
+# for i in range(1):
 #     plt.plot(idx[:501], u1[i].flatten())
 #     plt.plot(idx[500:], u2[i].flatten())
-# plt.savefig('ex3/daishan_u')
+# plt.savefig('/home/v-tingdu/code/ex3/daishan_u')
 
 u1 *= factor
 u2 *= factor
@@ -117,10 +121,10 @@ print("N value : ", NS - 1)
 dim = 257  # test resolution, dim must be odd
 grid_tx_1 = np.linspace(0, 0.5, int((dim + 1) / 2))
 grid_tx_2 = np.linspace(0.5, 1, int((dim + 1) / 2))
-grid_ty_1 = np.array([quad(integrand_y, 0, grid_tx_1[i])[0] for i in range(int((dim + 1) / 2))])
-grid_ty_2 = np.array([quad(integrand_y, 0, grid_tx_2[i])[0] for i in range(int((dim + 1) / 2))])
-ab_1 = get_modify(grid_ty_1, q1(grid_tx_1))
-ab_2 = get_modify(grid_ty_2, q2(grid_tx_2))
+# grid_ty_1 = np.array([quad(integrand_y, 0, grid_tx_1[i])[0] for i in range(int((dim + 1) / 2))])
+# grid_ty_2 = np.array([quad(integrand_y, 0, grid_tx_2[i])[0] for i in range(int((dim + 1) / 2))])
+ab_1 = get_modify(grid_tx_1, q1(grid_tx_1))
+ab_2 = get_modify(grid_tx_2, q2(grid_tx_2))
 max_modify_1 = ab_1.max(axis=0)
 min_modify_1 = ab_1.min(axis=0)
 max_modify_2 = ab_2.max(axis=0)
@@ -132,15 +136,15 @@ N = f_train.shape[0] * int((NS - 1) / 2)
 
 gridx_1 = np.linspace(0, 0.5, int((NS + 1) / 2))
 gridx_2 = np.linspace(0.5, 1, int((NS + 1) / 2))
-gridy_1 = np.array([quad(integrand_y, 0, gridx_1[i])[0] for i in range(int((NS + 1) / 2))])
-gridy_2 = np.array([quad(integrand_y, 0, gridx_2[i])[0] for i in range(int((NS + 1) / 2))])
+# gridy_1 = np.array([quad(integrand_y, 0, gridx_1[i])[0] for i in range(int((NS + 1) / 2))])
+# gridy_2 = np.array([quad(integrand_y, 0, gridx_2[i])[0] for i in range(int((NS + 1) / 2))])
 grid_h_1 = np.linspace(0, 0.5, int((N_max+1)/2))
 grid_h_2 = np.linspace(0.5, 1, int((N_max+1)/2))
 u_train_1 = interpolate.interp1d(grid_h_1, u1[:ntrain, :])(gridx_1[:-1])
 u_train_2 = interpolate.interp1d(grid_h_2, u2[:ntrain, :])(gridx_2[1:])
 
-ab_1 = get_modify(gridy_1, q1(gridx_1))
-ab_2 = get_modify(gridy_2, q2(gridx_2))
+ab_1 = get_modify(gridx_1, q1(gridx_1))
+ab_2 = get_modify(gridx_2, q2(gridx_2))
 input_f = np.repeat(f_train, int((NS - 1) / 2), axis=0)
 input_loc_1 = np.tile(gridx_1[:-1], f_train.shape[0]).reshape((N, 1))
 input_loc_2 = np.tile(gridx_2[1:], f_train.shape[0]).reshape((N, 1))
@@ -193,24 +197,24 @@ for ep in range(epochs):
         out_2 = model_2(x, l_2, e_2[:, 0].reshape((-1, 1)), e_2[:, 1].reshape((-1, 1)))
         mse_1 = F.mse_loss(out_1.view(out_1.numel(), -1), y_1.view(y_1.numel(), -1), reduction='mean')
         mse_2 = F.mse_loss(out_2.view(out_2.numel(), -1), y_2.view(y_2.numel(), -1), reduction='mean')
-        mse_data = mse_1 + mse_2
-        mse = mse_data
+        mse = mse_1 + mse_2
+        mse_data = mse.item()
         point.requires_grad_(True)
         out_1 = model_1(x, point, point_airy_00, point_airy_01)
         out_2 = model_2(x, point, point_airy_10, point_airy_11)
-        mse_jump = 0.5 * F.mse_loss(out_2 - factor, out_1, reduction='mean')
+        mse_jump = 0.01 * F.mse_loss(out_2 - factor, out_1, reduction='mean')
         mse += mse_jump
         grad_1 = torch.autograd.grad(out_1, point, grad_outputs=torch.ones_like(out_1), create_graph=False,
                             only_inputs=True, retain_graph=True)[0]
         grad_2 = torch.autograd.grad(out_2, point, grad_outputs=torch.ones_like(out_2), create_graph=False,
                                      only_inputs=True, retain_graph=True)[0]
-        mse_jump_deriv = 0.0001 * F.mse_loss(grad_2 - factor, grad_1, reduction='mean')
+        mse_jump_deriv = 0.001 * F.mse_loss(grad_2 - factor, grad_1, reduction='mean')
         mse += mse_jump_deriv
         mse.backward()
         optimizer_1.step()
         optimizer_2.step()
         train_mse += mse.item()
-        train_mse_data += mse_data.item()
+        train_mse_data += mse_data
         train_mse_jump += mse_jump.item()
         train_mse_jump_deriv += mse_jump_deriv.item()
     scheduler_1.step()
@@ -229,22 +233,22 @@ for ep in range(epochs):
 print('Total training time:', default_timer() - start, 's')
 loss_history["{}".format(NS)] = mse_history
 
-torch.save(model_1.state_dict(), 'ex3/model1_128.pt')
-torch.save(model_2.state_dict(), 'ex3/model2_128.pt')
+torch.save(model_1.state_dict(), '/home/v-tingdu/code/ex3/model1_128.pt')
+torch.save(model_2.state_dict(), '/home/v-tingdu/code/ex3/model2_128.pt')
 
 dim = 257  # test resolution, dim must be odd
 batch_size = int((dim- 1) / 2)
 N = ntest * int((dim- 1) / 2)
 grid_tx_1 = np.linspace(0, 0.5 - 1/(dim - 1), int((dim - 1) / 2))
 grid_tx_2 = np.linspace(0.5 + 1/(dim - 1), 1, int((dim - 1) / 2))
-grid_ty_1 = np.array([quad(integrand_y, 0, grid_tx_1[i])[0] for i in range(int((dim - 1) / 2))])
-grid_ty_2 = np.array([quad(integrand_y, 0, grid_tx_2[i])[0] for i in range(int((dim - 1) / 2))])
+# grid_ty_1 = np.array([quad(integrand_y, 0, grid_tx_1[i])[0] for i in range(int((dim - 1) / 2))])
+# grid_ty_2 = np.array([quad(integrand_y, 0, grid_tx_2[i])[0] for i in range(int((dim - 1) / 2))])
 f_test = f[-ntest:, :]
 u_test_1 = interpolate.interp1d(grid_h_1, u1[-ntest:, :])(grid_tx_1)
 u_test_2 = interpolate.interp1d(grid_h_2, u2[-ntest:, :])(grid_tx_2)
 
-ab_1 = get_modify(grid_ty_1, q1(grid_tx_1))
-ab_2 = get_modify(grid_ty_2, q2(grid_tx_2))
+ab_1 = get_modify(grid_tx_1, q1(grid_tx_1))
+ab_2 = get_modify(grid_tx_2, q2(grid_tx_2))
 input_f = np.repeat(f_test, int((dim - 1) / 2), axis=0)
 input_loc_1 = np.tile(grid_tx_1, f_test.shape[0]).reshape((N, 1))
 input_loc_2 = np.tile(grid_tx_2, f_test.shape[0]).reshape((N, 1))
@@ -330,4 +334,4 @@ plt.grid()
 
 plt.tight_layout()
 plt.show(block=True)
-plt.savefig('ex3/loss_128.png')
+plt.savefig('/home/v-tingdu/code/ex3/loss_128.png')

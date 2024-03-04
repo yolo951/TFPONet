@@ -1,6 +1,6 @@
 
 import sys
-sys.path.append('D:\pycharm\pycharm_project\TFPONet')
+sys.path.append('/home/v-tingdu/code')
 import numpy as np
 from scipy.special import airy
 from scipy.integrate import quad
@@ -11,22 +11,16 @@ import generate_data_1d
 
 # solve equation -u''(x)+q(x)u(x)=F(x)
 def discontinuous_tfpm(f):
-    def f_a(x):
-        return np.where(x <= 0.5, 1 / (2 + 4 * np.sin(x) ** 2), 0.5)
-    integrand_y = lambda x: 1 / f_a(x)
-    # 原始问题在0.5处间断
-    x_disc = quad(integrand_y, 0, 0.5)[0]
-    x_end = quad(integrand_y, 0, 1)[0]
 
     def q(x):
-        return np.where(x<=x_disc, 500.0, 50*(6*x-np.sin(2*x)))
+        return np.where(x<=0.5, 5000.0, 100*(4+32*x))
 
     def q2(x):
-        return 50*(6*x-np.sin(2*x))
+        return 100*(4+32*x)
 
     def F(x):
-        # return np.zeros_like(x)
-        return interpolate_f(x)[k]
+        return interpolate.interp1d(np.linspace(0, 1, N), f[k])(x)
+        # return interpolate_f(x)[k]
 
     def integrand_linear(s):  # for -u''=f
         G = np.where(y >= s, s-y, 0)
@@ -60,12 +54,14 @@ def discontinuous_tfpm(f):
 
     N = f.shape[-1]
     Nd = f.shape[0]
-    interpolate_f = interpolate.interp1d(np.linspace(0, x_end, N), f)
+    # interpolate_f = interpolate.interp1d(np.linspace(0, 1, N), f)
     x = np.zeros((Nd, N), dtype=np.float64)
+    x1 = np.zeros((Nd, int((N+1)/2)), dtype=np.float64)
+    x2 = np.zeros((Nd, int((N + 1) / 2)), dtype=np.float64)
     U = np.zeros((2*(N-1), 2*(N-1)), dtype=np.float64)
     B = np.zeros((2*(N-1),), dtype=np.float64)
     for k in range(Nd):
-        grid = np.linspace(0, x_end, N)
+        grid = np.linspace(0, 1, N)
         cRight = q(grid)
         cLeft = q(grid)
         cRight[int((N-1)/2)] = q2(grid[int((N-1)/2)])
@@ -220,25 +216,19 @@ def discontinuous_tfpm(f):
         for i in range(1, N-1):
             each_x[i] = AB[2*(i-1)]*coeff[i-1][0]+AB[2*(i-1)+1]*coeff[i-1][1]+coeff[i-1][2]
         x[k][:] = each_x
-        x1 = np.zeros((Nd, int((N+1)/2)), dtype=np.float64)
-        x2 = np.zeros((Nd, int((N + 1) / 2)), dtype=np.float64)
-        x1[:] = x[:, :int((N+1)/2)]
-        x2[:] = x[:, int((N+1)/2)-1:]
-        x2[:, 0] += 1
+    
+        x1[k, :] = x[k, :int((N+1)/2)]
+        x2[k, :] = x[k, int((N+1)/2)-1:]
+        x2[k, 0] += 1
     return x1, x2
 
 
-# def f_a(x):
-#     return np.where(x <= 0.5, 1 / (2 + 4 * np.sin(x) ** 2), 0.5)
-# integrand_y = lambda x: 1 / f_a(x)
-# # 原始问题在0.5处间断
-# y_disc = quad(integrand_y, 0, 0.5)[0]
-# y_end = quad(integrand_y, 0, 1)[0]
-# f=generate_data_1d.generate(end=y_end, samples=10)
-# u1, u2 = discontinuous_tfpm(f)
-# idx= np.arange(0, 1001)
-# for i in range(10):
-#     plt.plot(idx[:501], u1[i].flatten(), label='u1')
-#     plt.plot(idx[500:], u2[i].flatten(), label='u2')
-# plt.legend()
-# plt.show()
+
+f=generate_data_1d.generate(samples=10)
+u1, u2 = discontinuous_tfpm(f)
+idx= np.arange(0, 1001)
+for i in range(10):
+    plt.plot(idx[:501], u1[i].flatten(), label='u1')
+    plt.plot(idx[500:], u2[i].flatten(), label='u2')
+plt.legend()
+plt.savefig('ex3/daishan.png')

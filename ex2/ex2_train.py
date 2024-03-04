@@ -44,8 +44,8 @@ def get_modify(x, y):
 ntrain = 500
 ntest = 50
 learning_rate = 0.00004
-epochs = 2000
-step_size = 200
+epochs = 600
+step_size = 100
 gamma = 0.4
 ap = 1
 factor = 10

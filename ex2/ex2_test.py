@@ -32,10 +32,10 @@ ntrain = 500
 ntest = 50
 factor = 10
 NS = 64
-f1 = np.load('code/ex2/ex2_f1.npy')
-f2 = np.load('code/ex2/ex2_f2.npy')
-u1 = np.load('code/ex2/ex2_u1.npy')
-u2 = np.load('code/ex2/ex2_u2.npy')
+f1 = np.load('ex2/ex2_f1.npy')
+f2 = np.load('ex2/ex2_f2.npy')
+u1 = np.load('ex2/ex2_u1.npy')
+u2 = np.load('ex2/ex2_u2.npy')
 u1 *= factor
 u2 *= factor
 N2_max = f1.shape[-1]
@@ -43,16 +43,16 @@ x_h = np.linspace(-1, 1, 2*N2_max-1)
 y_h = np.linspace(-1, 1, 2*N2_max-1)
 
 model_1 = TFPONet2D(2*NS + 1,  2).to(device)
-model_1.load_state_dict(torch.load('code/ex2/ex2_model1.pt'))
+model_1.load_state_dict(torch.load('ex2/ex2_model1_update.pt'))
 model_2 =  TFPONet2D(2*NS + 1,  2).to(device)
-model_2.load_state_dict(torch.load('code/ex2/ex2_model2.pt'))
+model_2.load_state_dict(torch.load('ex2/ex2_model2_update.pt'))
 
 
 
 
 
 
-dim = 128  # test resolution, dim must be odd
+dim = 64  # test resolution, dim must be odd
 N = ntest*(dim+1)**2
 batch_size = (dim+1)**2
 f1_test = interpolate.interp1d(np.linspace(-1, 0, N2_max), f1[ntrain:ntrain + ntest])(np.linspace(-1, 0, NS + 1))
@@ -138,4 +138,4 @@ for i in range(ntest):
     [X, Y] = np.meshgrid(x2, y)
     axs[1].pcolormesh(X, Y, np.abs(u_test_2[i]-pred_2[i]), cmap='cividis')
     cbar = fig.colorbar(img1, ax=axs, orientation='vertical', shrink=0.6, aspect=20)
-    plt.savefig('code/ex2/alltestfig/ex2_test{}.png'.format(i))
+    plt.savefig('ex2/alltestfig/ex2_test{}.png'.format(i))
