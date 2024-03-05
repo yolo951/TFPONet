@@ -43,23 +43,25 @@ class DeepONet2D(nn.Module):
 
         self.branch = nn.Sequential(
             nn.Linear(self.b_dim, 256),
-            nn.ReLU(),
+            nn.Tanh(),
             nn.Linear(256, 256),
-            nn.ReLU(),
+            nn.Tanh(),
             nn.Linear(256, 256),
-            nn.ReLU(),
+            nn.Tanh(),
             nn.Linear(256, 256),
-            nn.ReLU(),
+            nn.Tanh(),
             nn.Linear(256, 256),
         )
 
         self.trunk = nn.Sequential(
             nn.Linear(self.t_dim, 128),
-            nn.ReLU(),
+            nn.Tanh(),
             nn.Linear(128, 128),
-            nn.ReLU(),
+            nn.Tanh(),
             nn.Linear(128, 128),
-            nn.ReLU(),
+            nn.Tanh(),
+            nn.Linear(128, 128),
+            nn.Tanh(),
             nn.Linear(128, 256),
         )
 

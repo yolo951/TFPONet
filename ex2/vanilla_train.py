@@ -1,6 +1,6 @@
 import sys
 
-sys.path.append('D:\pycharm\pycharm_project\TFPONet')
+sys.path.append('/home/v-tingdu/code')
 import importlib
 import numpy as np
 import matplotlib.pyplot as plt
