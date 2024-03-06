@@ -68,9 +68,9 @@ def get_modify(x, f):
 eps = 0.001
 ntrain = 1000
 ntest = 100
-factor = 1
-learning_rate = 0.0005
-epochs = 100
+factor = 10
+learning_rate = 0.001
+epochs = 300
 step_size = 100
 gamma = 0.6
 alpha = 1
@@ -100,7 +100,7 @@ loss_history = dict()
 
 
 NS = 302
-dim = 902  # test resolution, dim must be odd
+dim = 302  # test resolution, dim must be odd
 mse_history = []
 mse_jump_history = []
 mse_jump_deriv_history = []
@@ -227,19 +227,19 @@ for ep in range(epochs):
                             only_inputs=True, retain_graph=True)[0]
         grad_2 = torch.autograd.grad(out_2, point_1, grad_outputs=torch.ones_like(out_2), create_graph=False,
                                      only_inputs=True, retain_graph=True)[0]
-        mse_jump_deriv_1 = 0.001 * F.mse_loss(grad_2 - 1*factor, grad_1, reduction='mean')
+        mse_jump_deriv_1 = 0.0001 * F.mse_loss(grad_2 - 1*factor, grad_1, reduction='mean')
         mse += mse_jump_deriv_1
 
         point_2.requires_grad_(True)
         out_2 = model_2(x, point_2, point_airy_20, point_airy_21)
         out_3 = model_3(x, point_2, point_airy_30, point_airy_31)
-        mse_jump_2 = 0.01 * F.mse_loss(out_3 - 1*factor, out_2, reduction='mean')
+        mse_jump_2 = 0.05 * F.mse_loss(out_3 - 1*factor, out_2, reduction='mean')
         mse += mse_jump_2
         grad_2 = torch.autograd.grad(out_2, point_2, grad_outputs=torch.ones_like(out_2), create_graph=False,
                                      only_inputs=True, retain_graph=True)[0]
         grad_3 = torch.autograd.grad(out_3, point_2, grad_outputs=torch.ones_like(out_3), create_graph=False,
                                      only_inputs=True, retain_graph=True)[0]
-        mse_jump_deriv_2 = 0.001 * F.mse_loss(grad_3 - 0*factor, grad_2, reduction='mean')
+        mse_jump_deriv_2 = 0.0005 * F.mse_loss(grad_3 - 0*factor, grad_2, reduction='mean')
         mse += mse_jump_deriv_2
         mse.backward()
         optimizer_1.step()
