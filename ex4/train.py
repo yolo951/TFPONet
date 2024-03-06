@@ -1,7 +1,8 @@
 
 
 import sys
-sys.path.append('/home/v-tingdu/code')
+sys.path.append('D:\pycharm\pycharm_project\TFPONet')
+import pdb
 import importlib
 import numpy as np
 import matplotlib.pyplot as plt
@@ -95,7 +96,13 @@ grid_h_1 = gridx_h[:int((N_max-1)/4+1)]
 grid_h_2 = gridx_h[int((N_max-1)/4):int((N_max-1)/2+1)]
 grid_h_3 = gridx_h[int((N_max-1)/2):]
 integrand_y = lambda x: 1 / func_a(x)
-
+def gety(x):
+    if x <= 0.25:
+        return quad(integrand_y, 0, x)[0]
+    elif 0.25 < x <= 0.5:
+        return quad(integrand_y, 0, 0.25)[0] + quad(integrand_y, 0.25, x)[0]
+    else:
+        return quad(integrand_y, 0, 0.25)[0] + quad(integrand_y, 0.25, 0.5)[0] + quad(integrand_y, 0.5, x)[0]
 loss_history = dict()
 
 
@@ -113,9 +120,9 @@ N = f_train.shape[0] * int((NS - 2) / 3)
 grid_tx_1 = np.linspace(0, 0.25, int((dim - 2) / 3)+1)
 grid_tx_2 = np.linspace(0.25, 0.5, int((dim - 2) / 3)+2)
 grid_tx_3 = np.linspace(0.5, 1, int((dim - 2) / 3)+1)
-grid_ty_1 = np.array([quad(integrand_y, 0, grid_tx_1[i])[0] for i in range(int((dim - 2) / 3)+1)])
-grid_ty_2 = np.array([quad(integrand_y, 0, grid_tx_2[i])[0] for i in range(int((dim - 2) / 3)+2)])
-grid_ty_3 = np.array([quad(integrand_y, 0, grid_tx_3[i])[0] for i in range(int((dim - 2) / 3)+1)])
+grid_ty_1 = np.array([gety(grid_tx_1[i]) for i in range(int((dim - 2) / 3)+1)])
+grid_ty_2 = np.array([gety(grid_tx_2[i]) for i in range(int((dim - 2) / 3)+2)])
+grid_ty_3 = np.array([gety(grid_tx_3[i]) for i in range(int((dim - 2) / 3)+1)])
 ab_1 = get_modify(grid_ty_1, q1(grid_tx_1))
 ab_2 = get_modify(grid_ty_2, q2(grid_tx_2))
 ab_3 = get_modify(grid_ty_3, q3(grid_tx_3))
@@ -129,9 +136,9 @@ min_modify_3 = ab_3.min(axis=0)
 gridx_1 = np.linspace(0, 0.25, int((NS - 2) / 3)+1)
 gridx_2 = np.linspace(0.25, 0.5, int((NS - 2) / 3)+2)
 gridx_3 = np.linspace(0.5, 1, int((NS - 2) / 3)+1)
-gridy_1 = np.array([quad(integrand_y, 0, gridx_1[i])[0] for i in range(int((NS - 2) / 3)+1)])
-gridy_2 = np.array([quad(integrand_y, 0, gridx_2[i])[0] for i in range(int((NS - 2) / 3)+2)])
-gridy_3 = np.array([quad(integrand_y, 0, gridx_3[i])[0] for i in range(int((NS - 2) / 3)+1)])
+gridy_1 = np.array([gety(gridx_1[i])for i in range(int((NS - 2) / 3)+1)])
+gridy_2 = np.array([gety(gridx_2[i]) for i in range(int((NS - 2) / 3)+2)])
+gridy_3 = np.array([gety(gridx_3[i]) for i in range(int((NS - 2) / 3)+1)])
 u_train_1 = interpolate.interp1d(grid_h_1, u1[:ntrain, :])(gridx_1[:-1])
 u_train_2 = interpolate.interp1d(grid_h_2, u2[:ntrain, :])(gridx_2[1:-1])
 u_train_3 = interpolate.interp1d(grid_h_3, u3[:ntrain, :])(gridx_3[1:])

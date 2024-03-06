@@ -1,6 +1,6 @@
 
 import sys
-sys.path.append('/home/v-tingdu/code')
+sys.path.append('D:\pycharm\pycharm_project\TFPONet')
 import numpy as np
 from scipy.special import airy
 from scipy.integrate import quad
@@ -26,11 +26,19 @@ def discontinuous_tfpm(f, eps):
     def q3(x):
         return 1 / eps * 4 * np.ones_like(x)
 
+
+    def gety(x):
+        if x<=0.25:
+            return quad(integrand_y, 0, x)[0]
+        elif 0.25<x<=0.5:
+            return quad(integrand_y, 0, 0.25)[0]+quad(integrand_y, 0.25, x)[0]
+        else:
+            return quad(integrand_y, 0, 0.25)[0]+quad(integrand_y, 0.25, 0.5)[0]+quad(integrand_y, 0.5, x)[0]
     N = f.shape[-1]
     integrand_y = lambda x: 1 / func_a(x)
     gridx = np.linspace(0, 1, N)
     val_a = func_a(gridx)
-    grid = np.array([quad(integrand_y, 0, gridx[i])[0] for i in range(N)])
+    grid = np.array([gety(gridx[i]) for i in range(N)])
 
 
 
