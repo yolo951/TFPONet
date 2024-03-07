@@ -26,10 +26,10 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 eps = 0.001
 ntrain = 1000
 ntest = 100
-factor = 1
-learning_rate = 0.002
-epochs = 100
-step_size = 50
+factor = 10
+learning_rate = 0.0002
+epochs = 1000
+step_size = 100
 gamma = 0.6
 alpha = 1
 
@@ -92,6 +92,7 @@ output_2 = torch.Tensor(output_2).to(device)
 output_3 = torch.Tensor(output_3).to(device)
 disc_point_1 = torch.tensor([0.25]).to(device)
 disc_point_2 = torch.tensor([0.5]).to(device)
+disc_point_3 = torch.tensor([1.0]).to(device)
 train_loader = torch.utils.data.DataLoader(torch.utils.data.TensorDataset(input_f, input_loc_1, input_loc_2, input_loc_3,
                                                                           output_1, output_2, output_3),
                                                                           batch_size=256, shuffle=True)
@@ -117,6 +118,7 @@ for ep in range(epochs):
     for x, l_1, l_2, l_3, y_1, y_2, y_3 in train_loader:
         point_1 = torch.tile(disc_point_1, (x.shape[0], 1))
         point_2 = torch.tile(disc_point_2, (x.shape[0], 1))
+        point_3 = torch.tile(disc_point_3, (x.shape[0], 1))
         optimizer_1.zero_grad()
         optimizer_2.zero_grad()
         optimizer_3.zero_grad()
@@ -136,7 +138,7 @@ for ep in range(epochs):
                             only_inputs=True, retain_graph=True)[0]
         grad_2 = torch.autograd.grad(out_2, point_1, grad_outputs=torch.ones_like(out_2), create_graph=False,
                                      only_inputs=True, retain_graph=True)[0]
-        mse_jump_deriv_1 = 0.001 * F.mse_loss(grad_2 - 1*factor, grad_1, reduction='mean')
+        mse_jump_deriv_1 = 0.0001 * F.mse_loss(grad_2 - 1*factor, grad_1, reduction='mean')
         mse += mse_jump_deriv_1
         point_2.requires_grad_(True)
         out_2 = model_2(x, point_2)
@@ -147,8 +149,12 @@ for ep in range(epochs):
                                      only_inputs=True, retain_graph=True)[0]
         grad_3 = torch.autograd.grad(out_3, point_2, grad_outputs=torch.ones_like(out_3), create_graph=False,
                                      only_inputs=True, retain_graph=True)[0]
-        mse_jump_deriv_2 = 0.001 * F.mse_loss(grad_3 - 0*factor, grad_2, reduction='mean')
+        mse_jump_deriv_2 = 0.0001 * F.mse_loss(grad_3 - 0*factor, grad_2, reduction='mean')
         mse += mse_jump_deriv_2
+
+        out_data_end = model_3(x, point_3)
+        mse_data_end = 10 * F.mse_loss(out_data_end, 0*out_data_end, reduction='mean')
+        mse += mse_data_end
         mse.backward()
         optimizer_1.step()
         optimizer_2.step()
@@ -156,7 +162,7 @@ for ep in range(epochs):
         train_mse += mse.item()
         train_mse_jump += mse_jump_1.item() + mse_jump_2.item()
         train_mse_jump_deriv += mse_jump_deriv_1.item()
-        train_data_mse += mse_1.item() + mse_2.item() + mse_3.item()
+        train_data_mse += mse_1.item() + mse_2.item() + mse_3.item() + mse_data_end.item()
     scheduler_1.step()
     scheduler_2.step()
     # train_mse /= ntrain
