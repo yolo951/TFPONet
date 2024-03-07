@@ -1,6 +1,6 @@
 
 import sys
-sys.path.append('/home/v-tingdu/code/')
+sys.path.append('D:\pycharm\pycharm_project\TFPONet')
 import importlib
 import numpy as np
 import matplotlib.pyplot as plt
@@ -9,6 +9,7 @@ import torch.nn.functional as F
 from tfponet import TFPONet2D
 from scipy import interpolate
 from scipy.special import iv
+import pdb
 
 def mu(x, y):
     return np.where(x <= 0, 100*(1-x**2)+1, 0.1)
@@ -52,7 +53,7 @@ model_2.load_state_dict(torch.load('ex2/ex2_model2_update.pt'))
 
 
 
-dim = 64  # test resolution, dim must be odd
+dim = 64
 N = ntest*(dim+1)**2
 batch_size = (dim+1)**2
 f1_test = interpolate.interp1d(np.linspace(-1, 0, N2_max), f1[ntrain:ntrain + ntest])(np.linspace(-1, 0, NS + 1))
@@ -68,6 +69,7 @@ for i in range(ntest):
     u_test_2[i] = interpolate.RectBivariateSpline(x_h[N2_max - 1:], y_h, u2[ntrain + i].T)(x2, y).T
 input_loc_1, ab_1 = get_modify(x1, y)
 input_loc_2, ab_2 = get_modify(x2, y)
+# pdb.set_trace()
 input_f = np.repeat(f_test, (dim + 1) ** 2, axis=0)
 input_loc_1 = np.tile(input_loc_1, (ntest, 1))
 input_loc_2 = np.tile(input_loc_2, (ntest, 1))
@@ -128,14 +130,16 @@ pred_2 /= factor
 # plt.savefig('ex2_test.png')
 
 for i in range(ntest):
+    residual1 = u_test_1[i]-pred_1[i]
+    residual2 = u_test_2[i]-pred_2[i]
     fig, axs = plt.subplots(1, 2, figsize=(12, 6))
-    [X, Y] = np.meshgrid(x1, y)
-    img1 = axs[0].pcolormesh(X, Y, np.abs(u_test_1[i]-pred_1[i]), cmap='cividis')
-    [X, Y] = np.meshgrid(x2, y)
-    axs[0].pcolormesh(X, Y, np.abs(u_test_2[i]-pred_2[i]), cmap='cividis')
-    [X, Y] = np.meshgrid(x1, y)
-    axs[1].pcolormesh(X, Y, np.abs(u_test_1[i]-pred_1[i]), cmap='cividis')
-    [X, Y] = np.meshgrid(x2, y)
-    axs[1].pcolormesh(X, Y, np.abs(u_test_2[i]-pred_2[i]), cmap='cividis')
+    [X, Y] = np.meshgrid(x1[:-1], y)
+    img1 = axs[0].pcolormesh(X, Y, np.abs(residual1[:, :-1]), cmap='cividis')
+    [X, Y] = np.meshgrid(x2[1:], y)
+    axs[0].pcolormesh(X, Y, np.abs(residual2[:, 1:]), cmap='cividis')
+    [X, Y] = np.meshgrid(x1[:-1], y)
+    axs[1].pcolormesh(X, Y, np.abs(residual1[:, :-1]), cmap='cividis')
+    [X, Y] = np.meshgrid(x2[1:], y)
+    axs[1].pcolormesh(X, Y, np.abs(residual2[:, 1:]), cmap='cividis')
     cbar = fig.colorbar(img1, ax=axs, orientation='vertical', shrink=0.6, aspect=20)
     plt.savefig('ex2/alltestfig/ex2_test{}.png'.format(i))

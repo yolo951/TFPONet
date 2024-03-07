@@ -157,7 +157,7 @@ plt.show()
 
 fig = plt.figure(figsize=(6.4,2))#默认figsize=(6.4,4.8)
 plt.plot(grid_t[-15:], u_test[i, -15:] / factor,
-         linestyle='solid', linewidth=1.5, color='blue', label='ground truth',)
+         linestyle='solid', linewidth=1.5, color='blue', label='ground truth')
 plt.plot(grid_t[-15:], pred[i, -15:] / factor,
          linestyle='--', linewidth=1.5, color='red', label='prediction')
 legend2 = plt.legend(fontsize=10, frameon=True)
