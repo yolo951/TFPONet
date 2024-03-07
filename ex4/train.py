@@ -1,7 +1,7 @@
 
 
 import sys
-sys.path.append('D:\pycharm\pycharm_project\TFPONet')
+sys.path.append('/home/v-tingdu/code')
 import pdb
 import importlib
 import numpy as np
@@ -69,9 +69,9 @@ def get_modify(x, f):
 eps = 0.001
 ntrain = 1000
 ntest = 100
-factor = 1
-learning_rate = 0.0005
-epochs = 100
+factor = 10
+learning_rate = 0.0002
+epochs = 1000
 step_size = 100
 gamma = 0.6
 alpha = 1
@@ -85,7 +85,13 @@ f = np.load('ex4/f.npy')
 u1 = np.load('ex4/u1.npy')
 u2 = np.load('ex4/u2.npy')
 u3 = np.load('ex4/u3.npy')
-
+# idx = np.arange(0, 1001)
+# plt.figure()
+# for i in range(ntrain,ntrain+10):
+#     plt.plot(idx[:251], u1[i].flatten())
+#     plt.plot(idx[250:501], u2[i].flatten())
+#     plt.plot(idx[500:], u3[i].flatten())
+# plt.savefig('ex4/daishan_u123')
 
 u1 *= factor
 u2 *= factor
@@ -173,11 +179,13 @@ output_2 = torch.Tensor(output_2).to(device)
 output_3 = torch.Tensor(output_3).to(device)
 disc_point_1 = torch.tensor([0.25]).to(device)
 disc_point_2 = torch.tensor([0.5]).to(device)
-disc_point_airy = torch.zeros((4, 2)).to(device)
+disc_point_3 = torch.tensor([1.0]).to(device)
+disc_point_airy = torch.zeros((5, 2)).to(device)
 disc_point_airy[0] = torch.tensor(ab_1[-1])
 disc_point_airy[1] = torch.tensor(ab_2[0])
 disc_point_airy[2] = torch.tensor(ab_2[-1])
 disc_point_airy[3] = torch.tensor(ab_3[0])
+disc_point_airy[4] = torch.tensor(ab_3[-1])
 train_loader = torch.utils.data.DataLoader(torch.utils.data.TensorDataset(input_f, input_loc_1, input_loc_2, input_loc_3,
                                                                           input_modify_1, input_modify_2, input_modify_3,
                                                                           output_1, output_2, output_3),
@@ -205,6 +213,7 @@ for ep in range(epochs):
     for x, l_1, l_2, l_3, e_1, e_2, e_3, y_1, y_2, y_3 in train_loader:
         point_1 = torch.tile(disc_point_1, (x.shape[0], 1))
         point_2 = torch.tile(disc_point_2, (x.shape[0], 1))
+        point_3 = torch.tile(disc_point_3, (x.shape[0], 1))
         point_airy_00 = torch.tile(disc_point_airy[0, 0], (x.shape[0], 1))
         point_airy_01 = torch.tile(disc_point_airy[0, 1], (x.shape[0], 1))
         point_airy_10 = torch.tile(disc_point_airy[1, 0], (x.shape[0], 1))
@@ -213,6 +222,8 @@ for ep in range(epochs):
         point_airy_21 = torch.tile(disc_point_airy[2, 1], (x.shape[0], 1))
         point_airy_30 = torch.tile(disc_point_airy[3, 0], (x.shape[0], 1))
         point_airy_31 = torch.tile(disc_point_airy[3, 1], (x.shape[0], 1))
+        point_airy_40 = torch.tile(disc_point_airy[4, 0], (x.shape[0], 1))
+        point_airy_41 = torch.tile(disc_point_airy[4, 1], (x.shape[0], 1))
 
 
         optimizer_1.zero_grad()
@@ -234,7 +245,7 @@ for ep in range(epochs):
                             only_inputs=True, retain_graph=True)[0]
         grad_2 = torch.autograd.grad(out_2, point_1, grad_outputs=torch.ones_like(out_2), create_graph=False,
                                      only_inputs=True, retain_graph=True)[0]
-        mse_jump_deriv_1 = 0.001 * F.mse_loss(grad_2 - 1*factor, grad_1, reduction='mean')
+        mse_jump_deriv_1 = 0.0001 * F.mse_loss(grad_2 - 1*factor, grad_1, reduction='mean')
         mse += mse_jump_deriv_1
 
         point_2.requires_grad_(True)
@@ -246,8 +257,12 @@ for ep in range(epochs):
                                      only_inputs=True, retain_graph=True)[0]
         grad_3 = torch.autograd.grad(out_3, point_2, grad_outputs=torch.ones_like(out_3), create_graph=False,
                                      only_inputs=True, retain_graph=True)[0]
-        mse_jump_deriv_2 = 0.001 * F.mse_loss(grad_3 - 0*factor, grad_2, reduction='mean')
+        mse_jump_deriv_2 = 0.0001 * F.mse_loss(grad_3 - 0*factor, grad_2, reduction='mean')
         mse += mse_jump_deriv_2
+
+        out_data_end = model_3(x, point_3, point_airy_40, point_airy_41)
+        mse_data_end = 10.0 * F.mse_loss(out_data_end, 0*out_data_end, reduction='mean')
+        mse += mse_data_end
         mse.backward()
         optimizer_1.step()
         optimizer_2.step()
@@ -255,7 +270,7 @@ for ep in range(epochs):
         train_mse += mse.item()
         train_mse_jump += mse_jump_1.item() + mse_jump_2.item()
         train_mse_jump_deriv += mse_jump_deriv_1.item() + mse_jump_deriv_2.item()
-        train_data_mse += mse_1.item() + mse_2.item() + mse_3.item()
+        train_data_mse += mse_1.item() + mse_2.item() + mse_3.item() + mse_data_end.item()
     scheduler_1.step()
     scheduler_2.step()
     # train_mse /= ntrain
