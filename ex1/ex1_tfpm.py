@@ -33,7 +33,7 @@ def tfpm(f, eps):
         return F(s) * G
 
     def integrandp_sin(s):
-        G = 1/sin(1)*np.where(y >= s, -np.cos(1-y)*sin(s), np.sin(1-s)*cos(y))Num
+        G = 1/sin(1)*np.where(y >= s, -np.cos(1-y)*sin(s), np.sin(1-s)*cos(y))
         return F(s) * G
 
     def integrand_sinh(s):  # for -u''+bu = f, b>0
