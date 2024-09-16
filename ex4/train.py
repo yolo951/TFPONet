@@ -1,7 +1,7 @@
 
 
 import sys
-sys.path.append('/home/v-tingdu/code')
+sys.path.append('D:\pycharm\pycharm_project\TFPONet')
 import pdb
 import importlib
 import numpy as np
@@ -71,8 +71,8 @@ ntrain = 1000
 ntest = 100
 factor = 10
 learning_rate = 0.0002
-epochs = 1000
-step_size = 100
+epochs = 200
+step_size = 50
 gamma = 0.6
 alpha = 1
 
@@ -123,21 +123,21 @@ print("N value : ", NS - 1)
 f = interpolate.interp1d(np.linspace(0, 1, N_max), f)(np.linspace(0, 1, NS))
 f_train = f[:ntrain, :]
 N = f_train.shape[0] * int((NS - 2) / 3)
-grid_tx_1 = np.linspace(0, 0.25, int((dim - 2) / 3)+1)
-grid_tx_2 = np.linspace(0.25, 0.5, int((dim - 2) / 3)+2)
-grid_tx_3 = np.linspace(0.5, 1, int((dim - 2) / 3)+1)
-grid_ty_1 = np.array([gety(grid_tx_1[i]) for i in range(int((dim - 2) / 3)+1)])
-grid_ty_2 = np.array([gety(grid_tx_2[i]) for i in range(int((dim - 2) / 3)+2)])
-grid_ty_3 = np.array([gety(grid_tx_3[i]) for i in range(int((dim - 2) / 3)+1)])
-ab_1 = get_modify(grid_ty_1, q1(grid_tx_1))
-ab_2 = get_modify(grid_ty_2, q2(grid_tx_2))
-ab_3 = get_modify(grid_ty_3, q3(grid_tx_3))
-max_modify_1 = ab_1.max(axis=0)
-min_modify_1 = ab_1.min(axis=0)
-max_modify_2 = ab_2.max(axis=0)
-min_modify_2 = ab_2.min(axis=0)
-max_modify_3 = ab_3.max(axis=0)
-min_modify_3 = ab_3.min(axis=0)
+# grid_tx_1 = np.linspace(0, 0.25, int((dim - 2) / 3)+1)
+# grid_tx_2 = np.linspace(0.25, 0.5, int((dim - 2) / 3)+2)
+# grid_tx_3 = np.linspace(0.5, 1, int((dim - 2) / 3)+1)
+# grid_ty_1 = np.array([gety(grid_tx_1[i]) for i in range(int((dim - 2) / 3)+1)])
+# grid_ty_2 = np.array([gety(grid_tx_2[i]) for i in range(int((dim - 2) / 3)+2)])
+# grid_ty_3 = np.array([gety(grid_tx_3[i]) for i in range(int((dim - 2) / 3)+1)])
+# ab_1 = get_modify(grid_ty_1, q1(grid_tx_1))
+# ab_2 = get_modify(grid_ty_2, q2(grid_tx_2))
+# ab_3 = get_modify(grid_ty_3, q3(grid_tx_3))
+# max_modify_1 = ab_1.max(axis=0)
+# min_modify_1 = ab_1.min(axis=0)
+# max_modify_2 = ab_2.max(axis=0)
+# min_modify_2 = ab_2.min(axis=0)
+# max_modify_3 = ab_3.max(axis=0)
+# min_modify_3 = ab_3.min(axis=0)
 
 gridx_1 = np.linspace(0, 0.25, int((NS - 2) / 3)+1)
 gridx_2 = np.linspace(0.25, 0.5, int((NS - 2) / 3)+2)
@@ -145,6 +145,11 @@ gridx_3 = np.linspace(0.5, 1, int((NS - 2) / 3)+1)
 gridy_1 = np.array([gety(gridx_1[i])for i in range(int((NS - 2) / 3)+1)])
 gridy_2 = np.array([gety(gridx_2[i]) for i in range(int((NS - 2) / 3)+2)])
 gridy_3 = np.array([gety(gridx_3[i]) for i in range(int((NS - 2) / 3)+1)])
+
+# input_loc_2 = gridx_2[1:-1]
+# input_loc_3 = gridx_3[1:]
+# idx2_shuffled = np.random.permutation(len(input_loc_2))
+# idx3_shuffled = np.random.permutation(len(input_loc_3))
 u_train_1 = interpolate.interp1d(grid_h_1, u1[:ntrain, :])(gridx_1[:-1])
 u_train_2 = interpolate.interp1d(grid_h_2, u2[:ntrain, :])(gridx_2[1:-1])
 u_train_3 = interpolate.interp1d(grid_h_3, u3[:ntrain, :])(gridx_3[1:])
@@ -152,10 +157,23 @@ u_train_3 = interpolate.interp1d(grid_h_3, u3[:ntrain, :])(gridx_3[1:])
 ab_1 = get_modify(gridy_1, q1(gridx_1))
 ab_2 = get_modify(gridy_2, q2(gridx_2))
 ab_3 = get_modify(gridy_3, q3(gridx_3))
-ab_1 = (ab_1 - min_modify_1)/(max_modify_1 - min_modify_1)
-ab_2 = (ab_2 - min_modify_2)/(max_modify_2 - min_modify_2)
-ab_3 = (ab_3 - min_modify_3)/(max_modify_3 - min_modify_3)
+# ab_1 = (ab_1 - min_modify_1)/(max_modify_1 - min_modify_1)
+# ab_2 = (ab_2 - min_modify_2)/(max_modify_2 - min_modify_2)
+# ab_3 = (ab_3 - min_modify_3)/(max_modify_3 - min_modify_3)
+f_train_copy = torch.tensor(f_train, dtype=torch.float32).to(device)
 input_f = np.repeat(f_train, int((NS - 1) / 3), axis=0)
+# input_modify_2 = ab_2[1:-1]
+# input_modify_3 = ab_3[1:]
+input_modify_1 = np.tile(ab_1[:-1], (ntrain, 1))
+input_modify_2 = np.tile(ab_2[1:-1], (ntrain, 1))
+input_modify_3 = np.tile(ab_3[1:], (ntrain, 1))
+mean1 = input_modify_1.mean(axis=0)
+mean2 = input_modify_2.mean(axis=0)
+mean3 = input_modify_3.mean(axis=0)
+std1 = input_modify_1.std(axis=0)
+std2 = input_modify_2.std(axis=0)
+std3 = input_modify_3.std(axis=0)
+
 input_loc_1 = np.tile(gridx_1[:-1], ntrain).reshape((N, 1))
 input_loc_2 = np.tile(gridx_2[1:-1], ntrain).reshape((N, 1))
 input_loc_3 = np.tile(gridx_3[1:], ntrain).reshape((N, 1))
@@ -171,21 +189,35 @@ input_f = torch.Tensor(input_f).to(device)
 input_loc_1 = torch.Tensor(input_loc_1).to(device)
 input_loc_2 = torch.Tensor(input_loc_2).to(device)
 input_loc_3 = torch.Tensor(input_loc_3).to(device)
-input_modify_1 = torch.Tensor(input_modify_1).to(device)
-input_modify_2 = torch.Tensor(input_modify_2).to(device)
-input_modify_3 = torch.Tensor(input_modify_3).to(device)
+input_modify_1 = torch.Tensor((input_modify_1-mean1)/std1).to(device)
+input_modify_2 = torch.Tensor((input_modify_2-mean2)/std2).to(device)
+input_modify_3 = torch.Tensor((input_modify_3-mean3)/std3).to(device)
 output_1 = torch.Tensor(output_1).to(device)
 output_2 = torch.Tensor(output_2).to(device)
 output_3 = torch.Tensor(output_3).to(device)
 disc_point_1 = torch.tensor([0.25]).to(device)
 disc_point_2 = torch.tensor([0.5]).to(device)
 disc_point_3 = torch.tensor([1.0]).to(device)
+dh = 0.001
+point1_pre = torch.tensor([0.25 - dh]).to(device)
+point1_next = torch.tensor([0.25 + dh]).to(device)
+point2_pre = torch.tensor([0.5 - dh]).to(device)
+point2_next = torch.tensor([0.5 + dh]).to(device)
 disc_point_airy = torch.zeros((5, 2)).to(device)
-disc_point_airy[0] = torch.tensor(ab_1[-1])
-disc_point_airy[1] = torch.tensor(ab_2[0])
-disc_point_airy[2] = torch.tensor(ab_2[-1])
-disc_point_airy[3] = torch.tensor(ab_3[0])
-disc_point_airy[4] = torch.tensor(ab_3[-1])
+disc_point_airy[0] = torch.tensor((ab_1[-1]-mean1)/std1).to(device)
+disc_point_airy[1] = torch.tensor((ab_2[0]-mean2)/std2).to(device)
+disc_point_airy[2] = torch.tensor((ab_2[-1]-mean2)/std2).to(device)
+disc_point_airy[3] = torch.tensor((ab_3[0]-mean3)/std3).to(device)
+disc_point_airy[4] = torch.tensor(np.log(ab_3[-1])).to(device)
+
+ab = get_modify([gety(np.array([0.25 - dh])), gety(np.array([0.25]))], q1(np.array([0.25 - dh, 0.25])))[0]
+point1_pre_airy = torch.tensor((ab-mean1)/std1, dtype=torch.float32).to(device)
+ab = get_modify([gety(np.array([0.25])), gety(np.array([0.25 + dh]))], q2(np.array([0.25, 0.25 + dh])))[1]
+point1_next_airy = torch.tensor((ab-mean2)/std2, dtype=torch.float32).to(device)
+ab = get_modify([gety(np.array([0.5 - dh])), gety(np.array([0.5]))], q2(np.array([0.5 - dh, 0.5])))[0]
+point2_pre_airy = torch.tensor((ab-mean2)/std2, dtype=torch.float32).to(device)
+ab = get_modify([gety(np.array([0.5])), gety(np.array([0.25 + dh]))], q3(np.array([0.5, 0.5 + dh])))[0]
+point2_next_airy = torch.tensor((ab-mean3)/std3, dtype=torch.float32).to(device)
 train_loader = torch.utils.data.DataLoader(torch.utils.data.TensorDataset(input_f, input_loc_1, input_loc_2, input_loc_3,
                                                                           input_modify_1, input_modify_2, input_modify_3,
                                                                           output_1, output_2, output_3),
@@ -204,6 +236,7 @@ start = default_timer()
 for ep in range(epochs):
     model_1.train()
     model_2.train()
+    model_3.train()
     t1 = default_timer()
     train_mse = 0
     train_mse_data = 0
@@ -224,6 +257,14 @@ for ep in range(epochs):
         point_airy_31 = torch.tile(disc_point_airy[3, 1], (x.shape[0], 1))
         point_airy_40 = torch.tile(disc_point_airy[4, 0], (x.shape[0], 1))
         point_airy_41 = torch.tile(disc_point_airy[4, 1], (x.shape[0], 1))
+        point1_p = torch.tile(point1_pre, (x.shape[0], 1))
+        point1_n = torch.tile(point1_next, (x.shape[0], 1))
+        point2_p = torch.tile(point2_pre, (x.shape[0], 1))
+        point2_n = torch.tile(point2_next, (x.shape[0], 1))
+        point1_p_airy = torch.tile(point1_pre_airy, (x.shape[0], 1))
+        point1_n_airy = torch.tile(point1_next_airy, (x.shape[0], 1))
+        point2_p_airy = torch.tile(point2_pre_airy, (x.shape[0], 1))
+        point2_n_airy = torch.tile(point2_next_airy, (x.shape[0], 1))
 
 
         optimizer_1.zero_grad()
@@ -236,33 +277,40 @@ for ep in range(epochs):
         mse_2 = F.mse_loss(out_2.view(out_2.numel(), -1), y_2.view(y_2.numel(), -1), reduction='mean')
         mse_3 = F.mse_loss(out_3.view(out_3.numel(), -1), y_3.view(y_3.numel(), -1), reduction='mean')
         mse = mse_1 + mse_2 + mse_3
-        point_1.requires_grad_(True)
+        # point_1.requires_grad_(True)
         out_1 = model_1(x, point_1, point_airy_00, point_airy_01)
         out_2 = model_2(x, point_1, point_airy_10, point_airy_11)
         mse_jump_1 = 0.01 * F.mse_loss(out_2 - (-1)*factor, out_1, reduction='mean')
         mse += mse_jump_1
-        grad_1 = torch.autograd.grad(out_1, point_1, grad_outputs=torch.ones_like(out_1), create_graph=False,
-                            only_inputs=True, retain_graph=True)[0]
-        grad_2 = torch.autograd.grad(out_2, point_1, grad_outputs=torch.ones_like(out_2), create_graph=False,
-                                     only_inputs=True, retain_graph=True)[0]
-        mse_jump_deriv_1 = 0.0001 * F.mse_loss(grad_2 - 1*factor, grad_1, reduction='mean')
+        next_out_2 = model_2(x, point1_n, point1_n_airy[:, 0].reshape((-1, 1)), point1_n_airy[:, 1].reshape((-1, 1)))
+        pre_out_1 = model_1(x, point1_p, point1_p_airy[:, 0].reshape((-1, 1)), point1_p_airy[:, 1].reshape((-1, 1)))
+        mse_jump_deriv_1 = 0.0001 * F.mse_loss(next_out_2 - out_2 - 1 * dh * factor, pre_out_1 - out_1, reduction='mean')
+        # grad_1 = torch.autograd.grad(out_1, point_1, grad_outputs=torch.ones_like(out_1), create_graph=False,
+        #                     only_inputs=True, retain_graph=True)[0]
+        # grad_2 = torch.autograd.grad(out_2, point_1, grad_outputs=torch.ones_like(out_2), create_graph=False,
+        #                              only_inputs=True, retain_graph=True)[0]
+        # mse_jump_deriv_1 = 0.0001 * F.mse_loss(grad_2 - 1*factor, grad_1, reduction='mean')
         mse += mse_jump_deriv_1
 
-        point_2.requires_grad_(True)
+        # point_2.requires_grad_(True)
         out_2 = model_2(x, point_2, point_airy_20, point_airy_21)
         out_3 = model_3(x, point_2, point_airy_30, point_airy_31)
         mse_jump_2 = 0.01 * F.mse_loss(out_3 - 1*factor, out_2, reduction='mean')
         mse += mse_jump_2
-        grad_2 = torch.autograd.grad(out_2, point_2, grad_outputs=torch.ones_like(out_2), create_graph=False,
-                                     only_inputs=True, retain_graph=True)[0]
-        grad_3 = torch.autograd.grad(out_3, point_2, grad_outputs=torch.ones_like(out_3), create_graph=False,
-                                     only_inputs=True, retain_graph=True)[0]
-        mse_jump_deriv_2 = 0.0001 * F.mse_loss(grad_3 - 0*factor, grad_2, reduction='mean')
+        next_out_3 = model_3(x, point2_n, point2_n_airy[:, 0].reshape((-1, 1)), point2_n_airy[:, 1].reshape((-1, 1)))
+        pre_out_2 = model_2(x, point2_p, point2_p_airy[:, 0].reshape((-1, 1)), point2_p_airy[:, 1].reshape((-1, 1)))
+        mse_jump_deriv_2 = 0.0001 * F.mse_loss(next_out_3 - out_3 - 0 * dh * factor, pre_out_2 - out_2, reduction='mean')
+        # grad_2 = torch.autograd.grad(out_2, point_2, grad_outputs=torch.ones_like(out_2), create_graph=False,
+        #                              only_inputs=True, retain_graph=True)[0]
+        # grad_3 = torch.autograd.grad(out_3, point_2, grad_outputs=torch.ones_like(out_3), create_graph=False,
+        #                              only_inputs=True, retain_graph=True)[0]
+        # mse_jump_deriv_2 = 0.0001 * F.mse_loss(grad_3 - 0*factor, grad_2, reduction='mean')
         mse += mse_jump_deriv_2
 
         out_data_end = model_3(x, point_3, point_airy_40, point_airy_41)
-        mse_data_end = 10.0 * F.mse_loss(out_data_end, 0*out_data_end, reduction='mean')
+        mse_data_end = 50.0 * F.mse_loss(out_data_end, 0*out_data_end, reduction='mean')
         mse += mse_data_end
+
         mse.backward()
         optimizer_1.step()
         optimizer_2.step()
@@ -273,6 +321,7 @@ for ep in range(epochs):
         train_data_mse += mse_1.item() + mse_2.item() + mse_3.item() + mse_data_end.item()
     scheduler_1.step()
     scheduler_2.step()
+    scheduler_3.step()
     # train_mse /= ntrain
     train_mse /= len(train_loader)
     t2 = default_timer()
@@ -292,18 +341,24 @@ torch.save(model_2.state_dict(), 'ex4/model2_300.pt')
 torch.save(model_3.state_dict(), 'ex4/model3_300.pt')
 
 
-batch_size = int((dim- 2) / 3)
-N = ntest * int((dim- 2) / 3)
+batch_size = int((dim - 2) / 3)
+N = ntest * int((dim - 2) / 3)
 f_test = f[-ntest:, :]
+grid_tx_1 = np.linspace(0, 0.25, int((dim - 2) / 3)+1)
+grid_tx_2 = np.linspace(0.25, 0.5, int((dim - 2) / 3)+2)
+grid_tx_3 = np.linspace(0.5, 1, int((dim - 2) / 3)+1)
+grid_ty_1 = np.array([gety(grid_tx_1[i]) for i in range(int((dim - 2) / 3)+1)])
+grid_ty_2 = np.array([gety(grid_tx_2[i]) for i in range(int((dim - 2) / 3)+2)])
+grid_ty_3 = np.array([gety(grid_tx_3[i]) for i in range(int((dim - 2) / 3)+1)])
 u_test_1 = interpolate.interp1d(grid_h_1, u1[-ntest:, :])(grid_tx_1[:-1])
 u_test_2 = interpolate.interp1d(grid_h_2, u2[-ntest:, :])(grid_tx_2[1:-1])
 u_test_3 = interpolate.interp1d(grid_h_3, u3[-ntest:, :])(grid_tx_3[1:])
 ab_1 = get_modify(grid_ty_1, q1(grid_tx_1))
 ab_2 = get_modify(grid_ty_2, q2(grid_tx_2))
 ab_3 = get_modify(grid_ty_3, q3(grid_tx_3))
-ab_1 = (ab_1 - min_modify_1)/(max_modify_1 - min_modify_1)
-ab_2 = (ab_2 - min_modify_2)/(max_modify_2 - min_modify_2)
-ab_3 = (ab_3 - min_modify_3)/(max_modify_3 - min_modify_3)
+# ab_1 = (ab_1 - min_modify_1)/(max_modify_1 - min_modify_1)
+# ab_2 = (ab_2 - min_modify_2)/(max_modify_2 - min_modify_2)
+# ab_3 = (ab_3 - min_modify_3)/(max_modify_3 - min_modify_3)
 input_f = np.repeat(f_test, int((dim - 1) / 3), axis=0)
 input_loc_1 = np.tile(grid_tx_1[:-1], ntest).reshape((N, 1))
 input_loc_2 = np.tile(grid_tx_2[1:-1], ntest).reshape((N, 1))
@@ -318,9 +373,9 @@ input_f = torch.Tensor(input_f).to(device)
 input_loc_1 = torch.Tensor(input_loc_1).to(device)
 input_loc_2 = torch.Tensor(input_loc_2).to(device)
 input_loc_3 = torch.Tensor(input_loc_3).to(device)
-input_modify_1 = torch.Tensor(input_modify_1).to(device)
-input_modify_2 = torch.Tensor(input_modify_2).to(device)
-input_modify_3 = torch.Tensor(input_modify_3).to(device)
+input_modify_1 = torch.Tensor((input_modify_1-mean1)/std1).to(device)
+input_modify_2 = torch.Tensor((input_modify_2-mean2)/std2).to(device)
+input_modify_3 = torch.Tensor((input_modify_3-mean3)/std3).to(device)
 output_1 = torch.Tensor(output_1).to(device)
 output_2 = torch.Tensor(output_2).to(device)
 output_3 = torch.Tensor(output_3).to(device)

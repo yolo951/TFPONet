@@ -80,7 +80,7 @@ step_size = 60
 gamma = 0.6
 alpha = 1
 NS = 129
-dim = 257  # test resolution, dim must be odd
+dim = 1001  # test resolution, dim must be odd
 
 
 f = np.load('ex3/f.npy')
@@ -163,17 +163,17 @@ with torch.no_grad():
     test_mse /= len(test_h_loader)
     print('test error on high resolution: MSE = ', test_mse)
 
-pred_1 = pred_1.cpu()
-pred_2 = pred_2.cpu()
-residual_1 = pred_1 - u_test_1
-residual_2 = pred_2 - u_test_2
-for i in range(1):
-    fig = plt.figure()
-    plt.plot(grid_tx_1, pred_1[i] / factor, linestyle='solid', linewidth=1.5, color='blue', label='ground truth')
-    plt.plot(grid_tx_2, pred_2[i] / factor, linestyle='solid', linewidth=1.5, color='blue')
-    plt.plot(grid_tx_1, u_test_1[i] / factor, linestyle='--', linewidth=1.5, color='red', label='prediction')
-    plt.plot(grid_tx_2, u_test_2[i] / factor, linestyle='--', linewidth=1.5, color='red')
-    # plt.show()
-    plt.legend()
-    plt.savefig('ex3/testfig/fig{}.eps'.format(i))
+# pred_1 = pred_1.cpu()
+# pred_2 = pred_2.cpu()
+# residual_1 = pred_1 - u_test_1
+# residual_2 = pred_2 - u_test_2
+# for i in range(1):
+#     fig = plt.figure()
+#     plt.plot(grid_tx_1, pred_1[i] / factor, linestyle='solid', linewidth=1.5, color='blue', label='ground truth')
+#     plt.plot(grid_tx_2, pred_2[i] / factor, linestyle='solid', linewidth=1.5, color='blue')
+#     plt.plot(grid_tx_1, u_test_1[i] / factor, linestyle='--', linewidth=1.5, color='red', label='prediction')
+#     plt.plot(grid_tx_2, u_test_2[i] / factor, linestyle='--', linewidth=1.5, color='red')
+#     # plt.show()
+#     plt.legend()
+#     plt.savefig('ex3/testfig/fig{}.eps'.format(i))
 

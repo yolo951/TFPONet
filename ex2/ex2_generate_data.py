@@ -1,3 +1,4 @@
+
 import numpy as np
 from scipy.sparse import lil_matrix
 from scipy.sparse.linalg import spsolve
@@ -15,7 +16,6 @@ from scipy import linalg
 from scipy import interpolate
 from sklearn import gaussian_process as gp
 from mpl_toolkits.mplot3d import Axes3D
-
 
 # Gaussian Progress Regression
 class GP_regression:
@@ -197,47 +197,36 @@ def data_generate(samples, out_dim, length_scale=0.2, sigma_f=0.5):
     gp1 = GP_regression(length_scale, sigma_f, num_x_samples=num_x_samples, observations={"x": [0, 1], "y": [1, 0]})
     gp1.update()
     f2 = gp1.visualize(samples)
-    ## f1 = np.zeros((1, 11))
-    ## f2 = np.cos(np.pi/2*np.linspace(0, 1, 11)).reshape((1,-1))
-    # u1, u2 = dim2_tfpm(f1, f2)
-    # [x, y] = np.meshgrid(np.linspace(-1, 0, num_x_samples), np.linspace(-1, 1, out_dim))
-    # fig = plt.figure()
-    # axs = fig.add_subplot(111, projection='3d')
-    # axs.plot_surface(x, y, u1[0], cmap='gray')
-    # axs.view_init(elev=-10., azim=30)
-    # [x, y] = np.meshgrid(np.linspace(0, 1, num_x_samples), np.linspace(-1, 1, out_dim))
-    # axs.plot_surface(x, y, u2[0], cmap='gray')
-    # plt.show()
+    # f1 = np.zeros((1, 11))
+    # f2 = np.cos(np.pi/2*np.linspace(0, 1, 11)).reshape((1,-1))
+    u1, u2 = dim2_tfpm(f1, f2)
+    [x, y] = np.meshgrid(np.linspace(-1, 0, num_x_samples), np.linspace(-1, 1, out_dim))
+    fig = plt.figure()
+    axs = fig.add_subplot(111, projection='3d')
+    axs.plot_surface(x, y, u1[0], cmap='gray')
+    axs.view_init(elev=-10., azim=30)
+    [x, y] = np.meshgrid(np.linspace(0, 1, num_x_samples), np.linspace(-1, 1, out_dim))
+    axs.plot_surface(x, y, u2[0], cmap='gray')
+    plt.show()
     return f1, f2
 
-# data_generate(1, 101)
-
-
-
-
-
-
-
-
-
-
-
+data_generate(1, 101)
 
 
 # hmin = 1/128
 # [xi, yi] = np.meshgrid(np.arange(a0x, bx + hmin, hmin), np.arange(ay, by + hmin, hmin))
 # interp_func = interp2d(x2, y, u[:, right], kind='cubic')
 # zi = interp_func(xi[0, :], yi[:, 0])
-
+#
 # fig = plt.figure()
 # axs = fig.add_subplot(111, projection='3d')
 # axs.plot_surface(xi, yi, zi, cmap='gray')
 # axs.view_init(elev=-10., azim=30)
-
+#
 # u[:, J1] = u[:, J1] - ap
 # [xi, yi] = np.meshgrid(np.arange(ax, a0x + hmin, hmin), np.arange(ay, by + hmin, hmin))
 # interp_func = interp2d(x1, y, u[:, left], kind='cubic')
 # zi = interp_func(xi[0, :], yi[:, 0])
-
+#
 # axs.plot_surface(xi, yi, zi, cmap='gray')
 # plt.show()

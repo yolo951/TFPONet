@@ -9,13 +9,13 @@ import torch
 import torch.nn.functional as F
 from timeit import default_timer
 from Adam import Adam
-import tfponet
-importlib.reload(tfponet)
+# import tfponet
+# importlib.reload(tfponet)
 from tfponet import TFPONet
 from scipy import interpolate
 from scipy.special import airy
 # from ex1_tfpm import tfpm
-import generate_data_1d as generate_data_1d
+# import generate_data_1d as generate_data_1d
 from math import sqrt
 
 # importlib.reload(generate_data_1d)

@@ -1,6 +1,6 @@
 
 import sys
-sys.path.append('/home/v-tingdu/code')
+sys.path.append('D:\pycharm\pycharm_project\TFPONet')
 import pdb
 
 import importlib
@@ -82,7 +82,7 @@ alpha = 1
 
 # f=generate_data_1d.generate(end=y_end, samples=1100)
 # np.save('ex4_f.npy',f)
-f = np.load('/home/v-tingdu/code/ex3/f.npy')
+f = np.load('ex3/f.npy')
 # u = np.load('/home/v-tingdu/code/ex3/u_ex2_discontinuous.npy')
 # u1 = np.zeros((1100, 501), dtype=np.float64)
 # u2 = np.zeros((1100, 501), dtype=np.float64)
@@ -92,8 +92,8 @@ f = np.load('/home/v-tingdu/code/ex3/f.npy')
 # u1, u2 = discontinuous_tfpm(f)
 # np.save('/home/v-tingdu/code/ex3/u1.npy', u1)
 # np.save('/home/v-tingdu/code/ex3/u2.npy', u2)
-u1 = np.load('/home/v-tingdu/code/ex3/u1.npy')
-u2 = np.load('/home/v-tingdu/code/ex3/u2.npy')
+u1 = np.load('ex3/u1.npy')
+u2 = np.load('ex3/u2.npy')
 # idx = np.arange(0, 1001)
 # for i in range(1):
 #     plt.plot(idx, f[i].flatten())
@@ -111,14 +111,14 @@ N_max = f.shape[-1]
 loss_history = dict()
 
 
-NS = 129
+NS = 513
 mse_history = []
 mse_data_history = []
 mse_jump_history = []
 mse_jump_deriv_history = []
 print("N value : ", NS - 1)
 
-dim = 257  # test resolution, dim must be odd
+dim = 1001  # test resolution, dim must be odd
 grid_tx_1 = np.linspace(0, 0.5, int((dim + 1) / 2))
 grid_tx_2 = np.linspace(0.5, 1, int((dim + 1) / 2))
 # grid_ty_1 = np.array([quad(integrand_y, 0, grid_tx_1[i])[0] for i in range(int((dim + 1) / 2))])
@@ -233,10 +233,9 @@ for ep in range(epochs):
 print('Total training time:', default_timer() - start, 's')
 loss_history["{}".format(NS)] = mse_history
 
-torch.save(model_1.state_dict(), '/home/v-tingdu/code/ex3/model1_128.pt')
-torch.save(model_2.state_dict(), '/home/v-tingdu/code/ex3/model2_128.pt')
+torch.save(model_1.state_dict(), 'ex3/model1_256.pt')
+torch.save(model_2.state_dict(), 'ex3/model2_256.pt')
 
-dim = 257  # test resolution, dim must be odd
 batch_size = int((dim- 1) / 2)
 N = ntest * int((dim- 1) / 2)
 grid_tx_1 = np.linspace(0, 0.5 - 1/(dim - 1), int((dim - 1) / 2))
@@ -334,4 +333,4 @@ plt.grid()
 
 plt.tight_layout()
 plt.show(block=True)
-plt.savefig('/home/v-tingdu/code/ex3/loss_128.png')
+plt.savefig('ex3/loss_256.png')
