@@ -1,6 +1,6 @@
 
 import sys
-sys.path.append('/home/v-tingdu/code')
+sys.path.append('D:\pycharm\pycharm_project\TFPONet')
 import numpy as np
 from scipy.special import airy
 from scipy.integrate import quad

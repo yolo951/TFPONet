@@ -94,23 +94,23 @@ with torch.no_grad():
     test_mse /= len(test_h_loader)
     print('test error on high resolution: MSE = ', test_mse)
 
-pred_1 = pred_1.reshape((ntest, dim+1, dim+1)).numpy()
-pred_2 = pred_2.reshape((ntest, dim+1, dim+1)).numpy()
-u_test_1 /= factor
-u_test_2 /= factor
-pred_1 /= factor
-pred_2 /= factor
-for i in range(ntest):
-    residual1 = u_test_1[i]-pred_1[i]
-    residual2 = u_test_2[i]-pred_2[i]
-    fig, axs = plt.subplots(1, 2, figsize=(12, 6))
-    [X, Y] = np.meshgrid(x1[:-1], y)
-    img1 = axs[0].pcolormesh(X, Y, np.abs(residual1[:, :-1]), cmap='cividis')
-    [X, Y] = np.meshgrid(x2[1:], y)
-    axs[0].pcolormesh(X, Y, np.abs(residual2[:, 1:]), cmap='cividis')
-    [X, Y] = np.meshgrid(x1[:-1], y)
-    axs[1].pcolormesh(X, Y, np.abs(residual1[:, :-1]), cmap='cividis')
-    [X, Y] = np.meshgrid(x2[1:], y)
-    axs[1].pcolormesh(X, Y, np.abs(residual2[:, 1:]), cmap='cividis')
-    cbar = fig.colorbar(img1, ax=axs, orientation='vertical', shrink=0.6, aspect=20)
-    plt.savefig('ex2/vanillatestfig/test{}.png'.format(i))
+# pred_1 = pred_1.reshape((ntest, dim+1, dim+1)).numpy()
+# pred_2 = pred_2.reshape((ntest, dim+1, dim+1)).numpy()
+# u_test_1 /= factor
+# u_test_2 /= factor
+# pred_1 /= factor
+# pred_2 /= factor
+# for i in range(ntest):
+#     residual1 = u_test_1[i]-pred_1[i]
+#     residual2 = u_test_2[i]-pred_2[i]
+#     fig, axs = plt.subplots(1, 2, figsize=(12, 6))
+#     [X, Y] = np.meshgrid(x1[:-1], y)
+#     img1 = axs[0].pcolormesh(X, Y, np.abs(residual1[:, :-1]), cmap='cividis')
+#     [X, Y] = np.meshgrid(x2[1:], y)
+#     axs[0].pcolormesh(X, Y, np.abs(residual2[:, 1:]), cmap='cividis')
+#     [X, Y] = np.meshgrid(x1[:-1], y)
+#     axs[1].pcolormesh(X, Y, np.abs(residual1[:, :-1]), cmap='cividis')
+#     [X, Y] = np.meshgrid(x2[1:], y)
+#     axs[1].pcolormesh(X, Y, np.abs(residual2[:, 1:]), cmap='cividis')
+#     cbar = fig.colorbar(img1, ax=axs, orientation='vertical', shrink=0.6, aspect=20)
+#     plt.savefig('ex2/vanillatestfig/test{}.png'.format(i))
