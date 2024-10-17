@@ -37,11 +37,11 @@ alpha = 1
 # f2 = generate_data_1d.generate(begin=0.5, end=1.0, samples=1100, out_dim=641)
 # f = np.hstack((f1[:, :-1], f2))
 # np.save('f.npy', f)
-f = np.load('code/ex1/f.npy')
+f = np.load('ex1/f.npy')
 N_max = f.shape[-1]
-u = np.load('code/ex1/ex1_u.npy')
+u = np.load('ex1/ex1_u.npy')
 model = DeepONet(NS,  1).to(device)
-model.load_state_dict(torch.load('code/ex1/vanila_ex1_model_256.pt')) 
+model.load_state_dict(torch.load('ex1/vanila_ex1_model_256.pt')) 
 
 u *= factor
 f_train = f[:ntrain, :]

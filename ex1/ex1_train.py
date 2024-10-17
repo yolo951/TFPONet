@@ -74,14 +74,14 @@ alpha = 1
 # f2 = generate_data_1d.generate(begin=0.5, end=1.0, samples=1100, out_dim=641)
 # f = np.hstack((f1[:, :-1], f2))
 # np.save('f.npy', f)
-f = np.load('/home/v-tingdu/code/ex1/f.npy')
+f = np.load('ex1/f.npy')
 # 对输入的f不需要除以eps，他们只是相差一个共同的常数eps，如果是multi-eps的情形，输入的应该是f/eps
 # f = f/eps
 N_max = f.shape[-1]
 
 # u = tfpm(f, eps)
 # np.save('ex1_u.npy', u)
-u = np.load('/home/v-tingdu/code/ex1/ex1_u.npy')
+u = np.load('ex1/ex1_u.npy')
 # for i in range(10):
 #     plt.plot(f[i])
 # plt.savefig('/home/v-tingdu/code/icann/ex1_exam_f')
@@ -148,7 +148,7 @@ for ep in range(epochs):
 
 print('Total training time:', default_timer() - start, 's')
 loss_history["{}".format(NS)] = mse_history
-torch.save(model.state_dict(), '/home/v-tingdu/code/ex1/ex1_model_512.pt')
+torch.save(model.state_dict(), 'ex1/ex1_model_512.pt')
 
 
 dim = 1001  # test resolution, dim must be odd
@@ -224,4 +224,4 @@ plt.grid()
 
 plt.tight_layout()
 plt.show(block=True)
-plt.savefig('/home/v-tingdu/code/ex1/ex1_loss_512.png')
+plt.savefig('ex1/ex1_loss_512.png')

@@ -48,13 +48,13 @@ NS = 129
 dim = 2049  # test resolution, dim must be odd
 
 
-f = np.load('/home/v-tingdu/code/ex3/f.npy')
-u1 = np.load('/home/v-tingdu/code/ex3/u1.npy')
-u2 = np.load('/home/v-tingdu/code/ex3/u2.npy')
+f = np.load('ex3/f.npy')
+u1 = np.load('ex3/u1.npy')
+u2 = np.load('ex3/u2.npy')
 model_1 = DeepONet(NS,  1).to(device)
 model_2 = DeepONet(NS,  1).to(device)
-model_1.load_state_dict(torch.load('/home/v-tingdu/code/ex3/vanilla_model1_128.pt'))
-model_2.load_state_dict(torch.load('/home/v-tingdu/code/ex3/vanilla_model2_128.pt'))
+model_1.load_state_dict(torch.load('ex3/vanilla_model1_128.pt'))
+model_2.load_state_dict(torch.load('ex3/vanilla_model2_128.pt'))
 u1 *= factor
 u2 *= factor
 N_max = f.shape[-1]

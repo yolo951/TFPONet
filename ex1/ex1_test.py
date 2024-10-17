@@ -69,13 +69,13 @@ step_size = 50
 gamma = 0.6
 alpha = 1
 
-f = np.load('/home/v-tingdu/code/ex1/f.npy')
-u = np.load('/home/v-tingdu/code/ex1/ex1_u.npy')
+f = np.load('ex1/f.npy')
+u = np.load('ex1/ex1_u.npy')
 u *= factor
 
 N_max = f.shape[-1]
 model = TFPONet(NS,  1).to(device)
-model.load_state_dict(torch.load('/home/v-tingdu/code/ex1/ex1_model_384.pt')) 
+model.load_state_dict(torch.load('ex1/ex1_model_384.pt')) 
 
 
 

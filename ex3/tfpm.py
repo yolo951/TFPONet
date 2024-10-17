@@ -231,4 +231,4 @@ for i in range(10):
     plt.plot(idx[:501], u1[i].flatten(), label='u1')
     plt.plot(idx[500:], u2[i].flatten(), label='u2')
 plt.legend()
-plt.savefig('ex3/daishan.png')
+plt.savefig('ex3/test.png')

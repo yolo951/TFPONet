@@ -133,7 +133,7 @@ with torch.no_grad():
 pred = pred.cpu()
 residual = pred - u_test
 
-i = 76
+i = 0
 fig = plt.figure()
 # plt.title("ground truth")
 plt.plot(grid_t, u_test[i] / factor, label='ground truth',linestyle='solid', linewidth=1.5, color='blue')

@@ -32,12 +32,12 @@ gamma = 0.6
 alpha = 1
 
 # f=generate_data_1d.generate(end=x_end, samples=1100)
-# np.save('ex4_f.npy',f)
-f = np.load('/home/v-tingdu/code/ex3/f.npy')
+# np.save('ex3/f.npy',f)
+f = np.load('ex3/f.npy')
 # u = discontinuous_tfpm(f)
 # np.save('ex3/u.npy', u)
-u1 = np.load('/home/v-tingdu/code/ex3/u1.npy')
-u2 = np.load('/home/v-tingdu/code/ex3/u2.npy')
+u1 = np.load('ex3/u1.npy')
+u2 = np.load('ex3/u2.npy')
 
 u1 *= factor
 u2 *= factor
@@ -133,8 +133,8 @@ for ep in range(epochs):
 print('Total training time:', default_timer() - start, 's')
 loss_history["{}".format(NS)] = mse_history
 
-torch.save(model_1.state_dict(), '/home/v-tingdu/code/ex3/vanilla_model1_128.pt')
-torch.save(model_2.state_dict(), '/home/v-tingdu/code/ex3/vanilla_model2_128.pt')
+torch.save(model_1.state_dict(), 'ex3/vanilla_model1_128.pt')
+torch.save(model_2.state_dict(), 'ex3/vanilla_model2_128.pt')
 
 dim = 513  # test resolution, dim must be odd
 batch_size = int((dim- 1) / 2)
@@ -220,4 +220,4 @@ plt.grid()
 
 plt.tight_layout()
 plt.show(block=True)
-plt.savefig('/home/v-tingdu/code/ex3/vanilla_loss_128.png')
+plt.savefig('ex3/vanilla_loss_128.png')
